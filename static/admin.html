@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <title>OnePanel - 管理员控制台</title>
+    <link rel="stylesheet" href="/static/css/admin_style.css">
+    <link rel="icon" type="image/svg+xml" href="/static/logo.svg">
+    <style>
+        :root {
+            --admin-accent: #a29bfe;
+        }
+
+        /* 管理员专享紫色系 */
+        body {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .admin-layout {
+            display: flex;
+            width: 100%;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        /* 侧边栏 */
+        .admin-sidebar {
+            width: 260px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 30px 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .admin-nav button {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            background: transparent;
+            border: none;
+            color: white;
+            text-align: left;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .admin-nav button.active,
+        .admin-nav button:hover {
+            background: rgba(162, 155, 254, 0.3);
+            color: var(--admin-accent);
+        }
+
+        /* 主内容区 */
+        .admin-main {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow-y: auto;
+        }
+
+        /* 开关组件 */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.2);
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: var(--admin-accent);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(24px);
+        }
+
+        /* 用户表格 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            opacity: 0.6;
+        }
+
+        td {
+            padding: 15px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .badge.admin {
+            background: rgba(162, 155, 254, 0.4);
+            color: #efecff;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="admin-screen">
+        <div class="admin-layout">
+            <aside class="admin-sidebar">
+                <div class="brand">
+                    <img src="/static/logo.svg" alt="logo"
+                        style="width: 28px; filter: drop-shadow(0 0 5px var(--admin-primary));">
+                    <h2>OnePanel</h2>
+                </div>
+
+                <nav class="admin-nav">
+                    <button class="active" onclick="switchTab('users')">
+                        <span class="nav-icon">👥</span> 用户管理
+                    </button>
+                    <button onclick="switchTab('links')">
+                        <span class="nav-icon">🔗</span> 全局链接
+                    </button>
+                    <button onclick="switchTab('settings')">
+                        <span class="nav-icon">⚙️</span> 系统设置
+                    </button>
+                </nav>
+
+                <div class="sidebar-footer">
+                    <button class="logout-btn" onclick="adminLogout()">
+                        <svg viewBox="0 0 24 24">
+                            <path
+                                d="M16 17v-3H9v-4h7V7l5 5-5 5M14 2a2 2 0 012 2v2h-2V4H5v16h9v-2h2v2a2 2 0 01-2 2H5a2 2 0 01-2-2V4a2 2 0 012-2h9z" />
+                        </svg>
+                        <span>退出系统</span>
+                    </button>
+                </div>
+            </aside>
+
+            <div class="admin-container" style="display: flex; height: 100vh;">
+                <main class="main-content" style="flex: 1; padding: 40px; overflow-y: auto;">
+
+                    <div id="tab-users" class="content-section">
+                        <h1 style="margin-bottom: 30px;">用户管理</h1>
+                        <div class="admin-card" style="padding: 20px;">
+                            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                                <thead>
+                                    <tr
+                                        style="opacity: 0.6; font-size: 0.9rem; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                        <th style="padding: 15px;">用户名</th>
+                                        <th>角色</th>
+                                        <th>状态</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="user-list-body">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div id="tab-settings" class="content-section" style="display: none;">
+                        <div class="content-header">
+                            <h1>系统设置</h1>
+                        </div>
+
+                        <div class="settings-grid" style="display: grid; gap: 20px;">
+                            <div class="admin-card"
+                                style="padding: 25px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--admin-primary);">
+                                <div style="display: flex; align-items: center; gap: 20px;">
+                                    <div style="font-size: 2rem;">🔓</div>
+                                    <div>
+                                        <h3 style="margin-bottom: 4px; letter-spacing: 0.5px;">开放用户注册</h3>
+                                        <p style="font-size: 0.85rem; opacity: 0.5;">关闭后，系统将拒绝一切新的账号注册请求</p>
+                                    </div>
+                                </div>
+                                <label class="switch-container">
+                                    <input type="checkbox" id="reg-switch" onchange="updateRegStatus(this.checked)">
+                                    <span class="switch-slider"></span>
+                                </label>
+                            </div>
+
+                            <div class="admin-card"
+                                style="padding: 25px; display: flex; justify-content: space-between; align-items: center; opacity: 0.7;">
+                                <div style="display: flex; align-items: center; gap: 20px;">
+                                    <div style="font-size: 2rem;">🛠️</div>
+                                    <div>
+                                        <h3 style="margin-bottom: 4px;">维护模式</h3>
+                                        <p style="font-size: 0.85rem; opacity: 0.5;">开启后，非管理员访问将看到维护公告</p>
+                                    </div>
+                                </div>
+                                <div
+                                    style="font-size: 0.7rem; padding: 4px 8px; border: 1px solid rgba(255,255,255,0.2); border-radius: 4px;">
+                                    即将推出</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/admin.js"></script>
+</body>
+
+</html>

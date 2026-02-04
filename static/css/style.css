@@ -1,0 +1,689 @@
+:root {
+    --primary-color: #66ccff;
+    /* 天依蓝 */
+    --accent-color: #00ffcc;
+    --glass-bg: rgba(255, 255, 255, 0.12);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --dark-overlay: rgba(0, 0, 0, 0.35);
+    --color-1: #66ccff; /* 天依蓝 */
+    --color-2: #ee82ee; /* 梦幻紫 */
+    --color-3: #00ffcc; /* 极光绿 */
+    --color-4: #ffff99; /* 柔光黄 */
+}
+
+body,
+html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    color: white;
+    overflow-x: hidden;
+}
+
+/* 背景层 */
+.background-cover {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    z-index: -2;
+    transition: background-image 1s ease-in-out;
+}
+
+.background-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--dark-overlay);
+    z-index: -1;
+}
+
+/* 布局容器 */
+.container {
+    width: 100%;
+    min-height: 100vh;
+    /* 撑满屏幕高度 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* 关键：将搜索框放在距离顶部约 22% 的位置，这是视觉最舒适的高度 */
+    padding-top: 22vh;
+    box-sizing: border-box;
+}
+
+/* --- 搜索框组件 (胶囊设计) --- */
+.search-wrapper {
+    width: 600px;
+    /* 稍微加宽一点，视觉更舒展 */
+    height: 54px;
+    /* 固定高度，确保垂直居中 */
+    position: relative;
+    z-index: 1000;
+    margin-bottom: 70px;
+    /* 与下方链接卡片的间距 */
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(25px) saturate(150%);
+    -webkit-backdrop-filter: blur(25px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 30px;
+    padding: 0 10px 0 6px;
+    /* 调整内边距，左侧为胶囊留位置 */
+    display: flex;
+    align-items: center;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.search-wrapper:hover {
+    background: rgba(255, 255, 255, 0.18);
+    border-color: rgba(102, 204, 255, 0.4);
+}
+
+.search-wrapper:focus-within {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 20px rgba(102, 204, 255, 0.2);
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* 引擎胶囊 */
+.engine-pill {
+    display: flex;
+    align-items: center;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 25px;
+    cursor: pointer;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: 0.2s;
+}
+
+.engine-pill:hover {
+    background: rgba(102, 204, 255, 0.2);
+}
+
+#current-engine-icon {
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.chevron-icon {
+    width: 14px;
+    height: 14px;
+    fill: white;
+    margin-left: 5px;
+    opacity: 0.7;
+}
+
+.search-wrapper input {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 17px;
+    padding: 10px 15px;
+    flex: 1;
+    outline: none;
+}
+
+/* 引擎下拉菜单 */
+.engine-menu {
+    display: none;
+    position: absolute;
+    top: 55px;
+    /* 根据你的搜索框高度微调 */
+    left: 0;
+    width: 120px;
+    background: rgba(25, 30, 35, 0.9);
+    /* 稍微加深一点点，防止透过去看不清 */
+    backdrop-filter: blur(25px);
+    border-radius: 15px;
+    border: 1px solid var(--primary-color);
+    /* 增加天依蓝边框增强存在感 */
+    padding: 8px;
+    z-index: 2000;
+    /* 最高层级 */
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+}
+
+.engine-menu.active {
+    display: block;
+    animation: slideDown 0.2s ease;
+}
+
+/* 当前选中的 Logo 样式 */
+.engine-logo-img {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+/* 下拉菜单中的 Logo 样式 */
+.menu-logo {
+    width: 16px;
+    height: 16px;
+    margin-right: 10px;
+    vertical-align: middle;
+    border-radius: 2px;
+}
+
+/* 调整胶囊宽度以适应图标 */
+.engine-pill {
+    padding: 6px 10px;
+    min-width: 50px;
+    justify-content: center;
+}
+
+/* 菜单项对齐 */
+.menu-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    font-size: 13px;
+}
+
+.menu-item:hover {
+    background: var(--primary-color);
+    color: #1a1a1a;
+}
+
+/* 1. 链接网格容器 */
+.links-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 30px;
+    padding: 40px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    perspective: 1200px;
+}
+
+/* 2. 链接卡片基础样式 */
+.link-card {
+    position: relative;
+    height: 130px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 20px;
+    
+    /* 初始边框：半透明，由伪元素控制色彩边缘 */
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    
+    overflow: hidden; /* 必须隐藏溢出，否则流光会跑到外面 */
+    transition: all 0.3s ease;
+    transform-style: preserve-3d;
+    will-change: transform;
+    animation: fadeIn 0.5s ease backwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* 3. 随机色彩边缘逻辑 (利用 nth-child 模拟随机) */
+.link-card:nth-child(4n+1) { --card-color: var(--color-1); }
+.link-card:nth-child(4n+2) { --card-color: var(--color-2); }
+.link-card:nth-child(4n+3) { --card-color: var(--color-3); }
+.link-card:nth-child(4n+4) { --card-color: var(--color-4); }
+
+.link-card:hover {
+    border-color: var(--card-color);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3), 0 0 15px var(--card-color);
+}
+
+/* 5. 流光效果实现 (::after) */
+.link-card::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -150%; /* 初始位置在左侧外部 */
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+    );
+    transform: skewX(-20deg); /* 倾斜流光 */
+    transition: 0.6s;
+}
+
+.link-card:hover::after {
+    left: 150%; /* 划过整个卡片 */
+    transition: 0.6s ease-in-out;
+}
+
+.link-card a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    text-decoration: none;
+    color: inherit;
+    /* 关键：确保 3D 转换在 a 标签内部也有效 */
+    transform-style: preserve-3d;
+}
+
+/* 5. 内容层级 (3D 悬浮感) */
+.link-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    /* 稍微降低一点 Z 轴，避免透视过度 */
+    transform: translateZ(30px);
+    z-index: 2;
+}
+
+/* 4. 图标美化 */
+.link-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.12);
+    padding: 8px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* 5. 文字美化 */
+.link-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+/* 6. 悬停状态 (配合 JS 的 3D 旋转) */
+.link-card:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(102, 204, 255, 0.5); /* 洛天依蓝边框 */
+    box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.3),
+        0 0 20px rgba(102, 204, 255, 0.2);
+}
+
+/* 7. 空状态提示 */
+.links-grid:empty::after {
+    content: "✨ 暂无链接，登录后点击右上方添加";
+    grid-column: 1 / -1;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.4);
+    padding: 80px 0;
+    font-size: 16px;
+    letter-spacing: 1px;
+}
+
+/* 1. 定义呼吸动画 */
+@keyframes pulse-loading {
+    0% { background: rgba(255, 255, 255, 0.05); }
+    50% { background: rgba(255, 255, 255, 0.15); }
+    100% { background: rgba(255, 255, 255, 0.05); }
+}
+
+/* 2. 初始加载状态：应用呼吸动画 */
+.link-card.checking {
+    animation: pulse-loading 1.5s infinite ease-in-out;
+    pointer-events: none; /* 检测时禁止点击，防止误触 */
+}
+
+/* 3. 在卡片中心加一个微小的旋转圆圈（可选） */
+.link-card.checking .link-content {
+    opacity: 0.5;
+}
+
+/* 失效卡片：黑白滤镜 + 虚化 */
+.link-card.inactive {
+    filter: grayscale(1) contrast(0.8);
+    opacity: 0.5;
+}
+
+.link-card.inactive::before {
+    content: "OFFLINE";
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    font-size: 9px;
+    font-weight: bold;
+    color: #ff4d4d;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 2px 5px;
+    border-radius: 4px;
+    letter-spacing: 1px;
+    z-index: 5;
+}
+
+/* 即使失效，鼠标悬停时也允许显示删除按钮 */
+.link-card.inactive:hover {
+    filter: grayscale(0.5) contrast(1);
+    opacity: 0.8;
+}
+
+/* 删除按钮样式 */
+.delete-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(255, 77, 77, 0.2);
+    border: 1px solid rgba(255, 77, 77, 0.5);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0; /* 默认隐藏 */
+    transition: 0.3s;
+    z-index: 100;
+    transform: translateZ(50px); /* 悬浮在最前 */
+}
+
+.link-card:hover .delete-btn {
+    opacity: 1;
+}
+
+.delete-btn:hover {
+    background: #ff4d4d;
+    box-shadow: 0 0 10px #ff4d4d;
+}
+
+/* --- 顶部工具栏 --- */
+.auth-bar {
+    position: fixed;
+    top: 25px;
+    right: 25px;
+    z-index: 100;
+}
+
+.glass-btn {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    color: white;
+    padding: 10px 18px;
+    border-radius: 12px;
+    cursor: pointer;
+    margin-left: 10px;
+    transition: 0.3s;
+    font-size: 14px;
+}
+
+.glass-btn:hover {
+    background: var(--primary-color);
+    color: #1a1a1a;
+    font-weight: bold;
+}
+
+/* 图标容器样式 */
+.toggle-password {
+    position: absolute;
+    right: 12px;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.5);
+    /* 初始浅灰色 */
+    transition: all 0.3s ease;
+}
+
+.toggle-password:hover {
+    color: var(--primary-color);
+    /* 悬停变天依蓝 */
+}
+
+.eye-icon {
+    width: 100%;
+    height: 100%;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* 激活状态（睁眼时）图标微亮 */
+.toggle-password.active {
+    color: var(--primary-color);
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    display: none;
+    /* 默认隐藏 */
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 当添加了 active 类时显示 */
+.modal-overlay.active {
+    display: flex;
+}
+
+/* 弹窗核心：毛玻璃与阴影 */
+.modal-card {
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 24px;
+    padding: 40px;
+    width: 420px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: modalShow 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+@keyframes modalShow {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.modal-header h3 {
+    margin: 0 0 8px 0;
+    font-size: 22px;
+    background: linear-gradient(135deg, #fff 0%, #66ccff 100%);
+    -webkit-background-clip: text; /* 为 WebKit 浏览器添加前缀 */
+    background-clip: text; /* 添加标准属性 */
+    -webkit-text-fill-color: transparent;
+}
+
+
+.modal-header p {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 30px;
+}
+
+/* 高级输入框逻辑 */
+.input-field {
+    position: relative;
+    margin-bottom: 30px;
+}
+
+.input-field input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    padding: 10px 0;
+    color: #fff;
+    font-size: 16px;
+    outline: none;
+    transition: 0.3s;
+}
+
+.input-field label {
+    position: absolute;
+    left: 0;
+    top: 10px;
+    color: rgba(255, 255, 255, 0.4);
+    pointer-events: none;
+    transition: 0.3s ease all;
+}
+
+/* 输入框聚焦或有内容时标签浮起 */
+.input-field input:focus~label,
+.input-field input:valid~label {
+    top: -15px;
+    font-size: 12px;
+    color: #66ccff;
+}
+
+.input-field .line {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: #66ccff;
+    transition: 0.4s ease;
+}
+
+.input-field input:focus~.line {
+    width: 100%;
+    left: 0;
+}
+
+/* 按钮美化 */
+.modal-footer {
+    display: flex;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.btn-primary,
+.btn-secondary {
+    flex: 1;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #66ccff 0%, #3399ff 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(102, 204, 255, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 204, 255, 0.5);
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+#toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast {
+    min-width: 280px;
+    padding: 16px 20px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+    animation: toastIn 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+}
+
+@keyframes toastIn {
+    from { transform: translateX(120%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.toast.hide {
+    animation: toastOut 0.4s ease forwards;
+}
+
+@keyframes toastOut {
+    to { transform: translateX(120%); opacity: 0; }
+}
+
+/* 进度条动画 */
+.toast::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.4);
+    width: 100%;
+    animation: toastProgress 3s linear forwards;
+}
+
+@keyframes toastProgress {
+    to { width: 0; }
+}
+
+/* 不同类型的颜色 */
+.toast-success { border-left: 4px solid #00ffcc; }
+.toast-error { border-left: 4px solid #ff4d4d; }
+.toast-success i { color: #00ffcc; }
+.toast-error i { color: #ff4d4d; }
