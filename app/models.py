@@ -1,9 +1,13 @@
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
 from sqlalchemy.orm import Session
+
 try:
-    from database import Base, engine
+    from app.database import Base, engine
 except ImportError:
-    from .database import Base, engine
+    from database import Base, engine
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
+from app.database import Base, engine
+
 
 class User(Base):
     __tablename__ = "users"
@@ -14,10 +18,12 @@ class User(Base):
     custom_bg = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
 
+
 class SystemConfig(Base):
     __tablename__ = "system_config"
-    key = Column(String, primary_key=True) 
+    key = Column(String, primary_key=True)
     value = Column(String)
+
 
 class Link(Base):
     __tablename__ = "links"
@@ -27,6 +33,7 @@ class Link(Base):
     url = Column(String, nullable=False)
     icon = Column(String, nullable=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+
 
 def init_db():
     Base.metadata.create_all(bind=engine)
