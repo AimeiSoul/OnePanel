@@ -1,0 +1,13 @@
+# 忽略所有 __pycache__ 文件夹
+__pycache__/
+
+# 忽略数据库文件
+data/onepanel.db
+
+# 忽略目录下所有内容
+static/icons/*
+static/user_uploads/*
+
+# 但不要忽略.gitkeep
+!static/icons/.gitkeep
+!static/user_uploads/.gitkeep

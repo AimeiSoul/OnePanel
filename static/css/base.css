@@ -1,0 +1,80 @@
+:root {
+    --primary-color: #66ccff;
+    --accent-color: #00ffcc;
+    --glass-bg: rgba(255, 255, 255, 0.12);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --dark-overlay: rgba(0, 0, 0, 0.35);
+    --color-1: #66ccff;
+    --color-2: #ee82ee;
+    --color-3: #00ffcc;
+    --color-4: #ffff99;
+}
+
+body,
+html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    color: white;
+    overflow-x: hidden;
+}
+
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+        filter: blur(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes modalShow {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@media (max-width: 768px) {
+    .search-wrapper {
+        width: 90%;
+    }
+
+    #live-clock {
+        font-size: 3rem;
+    }
+}

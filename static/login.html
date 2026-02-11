@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OnePanel - 登录</title>
+    <link rel="stylesheet" href="/static/css/base.css">
+    <link rel="stylesheet" href="/static/css/layout.css">
+    <link rel="stylesheet" href="/static/css/search.css">
+    <link rel="stylesheet" href="/static/css/components.css">
+    <link rel="stylesheet" href="/static/css/utils.css">
+    <link rel="icon" type="image/svg+xml" href="/static/logo.svg">
+    <style>
+        :root {
+            --tianyi-blue: #66ccff;
+            --tianyi-green: #00ffcc;
+        }
+
+        .login-page {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: url('/static/default_bg.jpg') center/cover no-repeat;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-page::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 1;
+        }
+
+        .login-card {
+            position: relative;
+            z-index: 2;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
+            padding: 50px 40px;
+            width: 360px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+            text-align: center;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-card h2 {
+            margin: 0;
+            font-size: 32px;
+            font-weight: 300;
+            color: #fff;
+            letter-spacing: 4px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .subtitle {
+            color: var(--tianyi-blue);
+            font-size: 14px;
+            margin: 10px 0 40px 0;
+            font-weight: 500;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 11px;
+            margin-left: 5px;
+            margin-bottom: 5px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s;
+            box-sizing: border-box;
+        }
+
+        .input-group input:focus {
+            border-color: var(--tianyi-blue);
+            box-shadow: 0 0 15px rgba(102, 204, 255, 0.3);
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--tianyi-blue), #33aaff);
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 204, 255, 0.4);
+        }
+
+        .back-home {
+            margin-top: 25px;
+            display: block;
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        .back-home:hover {
+            color: var(--tianyi-blue);
+        }
+
+        .auth-switch {
+            margin-top: 25px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .auth-switch a {
+            color: var(--tianyi-blue);
+            text-decoration: none;
+            font-weight: bold;
+            margin-left: 5px;
+            transition: 0.3s;
+        }
+
+        .auth-switch a:hover {
+            text-shadow: 0 0 8px var(--tianyi-blue);
+        }
+
+        /* 新增 Footer 样式 */
+        .copyright-footer {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 3;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 12px;
+            letter-spacing: 1px;
+            white-space: nowrap;
+        }
+
+        .footer-link {
+            color: var(--tianyi-green);
+            text-decoration: none;
+            font-weight: 500;
+            transition: 0.3s;
+            opacity: 0.8;
+        }
+
+        .footer-link:hover {
+            opacity: 1;
+            text-shadow: 0 0 8px var(--tianyi-green);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-page">
+        <div class="login-card">
+            <h2>WELCOME</h2>
+            <div class="subtitle">登录到您的私人导航空间</div>
+
+            <form id="login-form">
+                <div class="input-group">
+                    <label>Username</label>
+                    <input type="text" id="username" placeholder="用户名" required>
+                </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" id="password" placeholder="密码" required>
+                </div>
+                <button type="submit" class="login-btn">开启同步</button>
+            </form>
+
+            <a href="/" class="back-home">← 返回首页</a>
+
+            <div class="auth-switch">
+                没有账号？ <a href="/register">立即创建空间</a>
+            </div>
+        </div>
+
+        <div class="copyright-footer">
+            Powered by <a href="https://github.com/AimeiSoul/OnePanel" target="_blank" class="footer-link">OnePanel</a>
+        </div>
+    </div>
+    <script src="/static/js/login.js"></script>
+</body>
+
+</html>

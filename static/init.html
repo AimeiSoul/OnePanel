@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OnePanel - 系统初始化</title>
+    <link rel="stylesheet" href="/static/css/base.css">
+    <link rel="stylesheet" href="/static/css/layout.css">
+    <link rel="stylesheet" href="/static/css/search.css">
+    <link rel="stylesheet" href="/static/css/components.css">
+    <link rel="stylesheet" href="/static/css/utils.css">
+    <link rel="icon" type="image/svg+xml" href="/static/logo.svg">
+    <style>
+        :root {
+            --tianyi-blue: #66ccff;
+            --tianyi-green: #00ffcc;
+        }
+
+        .init-page {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: url('/static/default_bg.jpg') center/cover no-repeat;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .init-page::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.45);
+            z-index: 1;
+        }
+
+        .init-card {
+            position: relative;
+            z-index: 2;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(20px) saturate(160%);
+            -webkit-backdrop-filter: blur(20px) saturate(160%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
+            padding: 40px;
+            width: 360px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        .init-card h2 {
+            margin: 0;
+            font-size: 26px;
+            color: #fff;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            color: var(--tianyi-green); 
+            font-size: 14px;
+            margin: 15px 0 35px 0;
+            font-weight: 500;
+            text-shadow: 0 1px 5px rgba(0,0,0,0.5);
+        }
+
+        .input-wrapper {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-wrapper label {
+            display: block;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 11px;
+            margin-left: 5px;
+            margin-bottom: 6px;
+            letter-spacing: 1px;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: #fff;
+            outline: none;
+            transition: 0.3s;
+            box-sizing: border-box;
+        }
+
+        .input-wrapper input:focus {
+            border-color: var(--tianyi-blue);
+            background: rgba(0, 0, 0, 0.4);
+            box-shadow: 0 0 15px rgba(102, 204, 255, 0.3);
+        }
+
+        .init-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--tianyi-blue), #33aaff);
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+
+        .init-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 204, 255, 0.4);
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--tianyi-green);
+            border-radius: 50%;
+            margin-right: 5px;
+            box-shadow: 0 0 8px var(--tianyi-green);
+        }
+
+        .copyright-footer {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 3;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 12px;
+            letter-spacing: 1px;
+            white-space: nowrap;
+        }
+
+        .footer-link {
+            color: var(--tianyi-green);
+            text-decoration: none;
+            font-weight: 500;
+            transition: 0.3s;
+            opacity: 0.8;
+        }
+
+        .footer-link:hover {
+            opacity: 1;
+            text-shadow: 0 0 8px var(--tianyi-green);
+        }
+    </style>
+</head>
+<body>
+    <div class="init-page">
+        <div class="init-card">
+            <h2>OnePanel Init</h2>
+            <div class="subtitle">
+                <span class="status-dot"></span> 首次运行，请指派管理员
+            </div>
+            
+            <form id="init-form">
+                <div class="input-wrapper">
+                    <label>管理账号</label>
+                    <input type="text" id="username" placeholder="建议使用 admin" required>
+                </div>
+                <div class="input-wrapper">
+                    <label>设置密码</label>
+                    <input type="password" id="password" placeholder="请输入登录密码" required>
+                </div>
+                <button type="submit" class="init-btn">初始化系统</button>
+            </form>
+        </div>
+
+        <div class="copyright-footer">
+            Powered by <a href="https://github.com/AimeiSoul/OnePanel" target="_blank" class="footer-link">OnePanel</a>
+        </div>
+    </div>
+    <script src="/static/js/init.js"></script>
+</body>
+</html>

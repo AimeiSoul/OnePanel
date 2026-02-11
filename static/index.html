@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <title>OnePanel | 洛水天依</title>
+    <script src="/static/js/config.js"></script>
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/ui.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="/static/js/main.js"></script>
+    <link rel="stylesheet" href="/static/css/base.css">
+    <link rel="stylesheet" href="/static/css/layout.css">
+    <link rel="stylesheet" href="/static/css/search.css">
+    <link rel="stylesheet" href="/static/css/components.css">
+    <link rel="stylesheet" href="/static/css/utils.css">
+    <link rel="icon" type="image/svg+xml" href="/static/logo.svg">
+</head>
+
+<body>
+    <div class="background-cover" id="bg-layer"></div>
+    <div class="background-overlay"></div>
+    <div class="auth-bar" id="auth-zone"></div>
+
+    <div class="container">
+        <div class="header-info">
+            <div class="header-left">
+                <span class="brand-text">One<br>Panel</span>
+            </div>
+            <div class="divider"></div>
+            <div class="time-group">
+                <div id="live-clock">00:00:00</div>
+                <div id="live-date" class="date-text">加载中...</div>
+            </div>
+        </div>
+
+        <div class="search-wrapper">
+            <div class="engine-pill" id="engine-selector">
+                <img id="current-engine-logo" src="https://www.bing.com/favicon.ico" alt="logo" class="engine-logo-img">
+                <svg class="chevron-icon" viewBox="0 0 24 24">
+                    <path d="M7 10l5 5 5-5z" />
+                </svg>
+                <div class="engine-menu" id="engine-dropdown">
+                    <div class="menu-item" onclick="setEngine(event, 'bing')">
+                        <img src="https://www.bing.com/favicon.ico" class="menu-logo"> Bing
+                    </div>
+                    <div class="menu-item" onclick="setEngine(event, 'baidu')">
+                        <img src="https://www.baidu.com/favicon.ico" class="menu-logo"> Baidu
+                    </div>
+                    <div class="menu-item" onclick="setEngine(event, 'google')">
+                        <img src="https://www.google.com/favicon.ico" class="menu-logo"> Google
+                    </div>
+                </div>
+            </div>
+            <input type="text" id="search-input" placeholder="输入内容搜索..." onkeypress="handleSearch(event)">
+        </div>
+
+        <div id="links-container" class="main-content-area"></div>
+
+        <div class="copyright-footer">
+            Powered by <a href="https://github.com/AimeiSoul/OnePanel" target="_blank" class="footer-link">OnePanel</a>
+        </div>
+    </div>
+
+    <input type="file" id="bg-input" hidden accept="image/*">
+
+    <div id="add-link-modal" class="modal-overlay" onclick="if(event.target==this) closeModal()">
+        <div class="modal-card blur-card">
+            <div class="modal-header">
+                <h3>✨ 添加新导航</h3>
+                <p>链接将存放在您选择的分组中</p>
+            </div>
+            <form onsubmit="submitAddLink(event)">
+                <div class="input-field">
+                    <input type="text" id="modal-link-title" required spellcheck="false">
+                    <label>网站名称</label>
+                    <div class="line"></div>
+                </div>
+                <div class="input-field">
+                    <input type="url" id="modal-link-url" required spellcheck="false">
+                    <label>网址 (URL)</label>
+                    <div class="line"></div>
+                </div>
+
+                <div class="icon-setting-group">
+                    <div class="icon-preview-box">
+                        <img id="modal-icon-preview" src="/static/default_link.jpg" alt="预览">
+                    </div>
+                    <div class="icon-controls">
+                        <div class="input-field mini-field">
+                            <input type="text" id="modal-icon-input" placeholder="图标 URL (可选)" spellcheck="false">
+                            <button type="button" class="btn-mini" onclick="downloadIconFromUrl()">抓取</button>
+                        </div>
+                        <div class="upload-btns">
+                            <button type="button" class="btn-mini-outline"
+                                onclick="document.getElementById('icon-file-hidden').click()">本地上传</button>
+                            <button type="button" class="btn-mini-outline text-danger" onclick="resetIcon()">重置</button>
+                        </div>
+                        <input type="file" id="icon-file-hidden" hidden accept="image/*"
+                            onchange="uploadIconFile(this)">
+                    </div>
+                    <input type="hidden" id="modal-icon-path">
+                </div>
+
+                <div class="input-field select-field">
+                    <select id="modal-group-id" required>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeModal()">取消</button>
+                    <button type="submit" class="btn-primary">确认保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="add-group-modal" class="modal-overlay" onclick="if(event.target==this) closeGroupModal()">
+        <div class="modal-card blur-card">
+            <div class="modal-header">
+                <h3>📁 新建分组</h3>
+                <p>为您的链接划分逻辑区域</p>
+            </div>
+            <form onsubmit="submitAddGroup(event)">
+                <div class="input-field">
+                    <input type="text" id="modal-group-name" required spellcheck="false">
+                    <label>分组名称 (如：工作、娱乐)</label>
+                    <div class="line"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeGroupModal()">取消</button>
+                    <button type="submit" class="btn-primary">创建分组</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+
+</body>
+
+</html>

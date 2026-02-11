@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>加入 OnePanel</title>
+    <link rel="stylesheet" href="/static/css/base.css">
+    <link rel="stylesheet" href="/static/css/layout.css">
+    <link rel="stylesheet" href="/static/css/search.css">
+    <link rel="stylesheet" href="/static/css/components.css">
+    <link rel="stylesheet" href="/static/css/utils.css">
+    <link rel="icon" type="image/svg+xml" href="/static/logo.svg">
+    <style>
+        .register-page {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: url('/static/default_bg.jpg') center/cover no-repeat;
+            position: relative;
+        }
+
+        .register-page::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 1;
+        }
+
+        .register-card {
+            position: relative;
+            z-index: 2;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
+            padding: 50px 40px;
+            width: 360px;
+            text-align: center;
+        }
+
+        .register-card h2 {
+            color: #fff;
+            letter-spacing: 2px;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 11px;
+            margin-bottom: 5px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #fff;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        .reg-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #00ffcc, #66ccff);
+            color: #1a1a1a;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .reg-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 204, 0.4);
+        }
+
+        .password-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            opacity: 0.6;
+            transition: 0.3s;
+        }
+
+        .toggle-password:hover {
+            opacity: 1;
+        }
+
+        .password-strength {
+            margin-top: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 11px;
+        }
+
+        .strength-item {
+            margin: 3px 0;
+            color: #ff4d4d;
+            transition: 0.3s;
+        }
+
+        .strength-item.valid {
+            color: #00ffcc;
+        }
+
+        .copyright-footer {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 3;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+
+        .footer-link {
+            color: rgba(0, 255, 204, 0.6); 
+            text-decoration: none;
+            font-weight: 500;
+            transition: 0.3s;
+        }
+
+        .footer-link:hover {
+            color: #00ffcc; 
+            text-shadow: 0 0 8px rgba(0, 255, 204, 0.4);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="register-page">
+        <div class="register-card">
+            <h2>创建账户</h2>
+            <form id="register-form">
+                <div class="input-group">
+                    <label>用户名</label>
+                    <input type="text" id="reg-username" placeholder="唯一标识符" required>
+                </div>
+
+                <div class="input-group">
+                    <label>设置密码</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="reg-password" placeholder="8位以上，包含大小写/数字/字符" required>
+                        <div class="toggle-password" onclick="togglePassword('reg-password', this)">
+                            <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path class="eye-closed"
+                                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
+                                </path>
+                                <line class="eye-closed" x1="1" y1="1" x2="23" y2="23"></line>
+                                <path class="eye-open" style="display:none"
+                                    d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle class="eye-open" style="display:none" cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="password-strength">
+                        <div class="strength-item" id="rule-length">❌ 至少 8 位字符</div>
+                        <div class="strength-item" id="rule-complex">❌ 复杂度 (大小写/数字/符号 4选3)</div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>确认密码</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="confirm-password" placeholder="请再次输入密码" required>
+                        <div class="toggle-password" onclick="togglePassword('confirm-password', this)">
+                            <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path class="eye-closed"
+                                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
+                                </path>
+                                <line class="eye-closed" x1="1" y1="1" x2="23" y2="23"></line>
+                                <path class="eye-open" style="display:none"
+                                    d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle class="eye-open" style="display:none" cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="password-strength">
+                        <div class="strength-item" id="rule-match">❌ 两次密码一致</div>
+                    </div>
+                </div>
+
+                <button type="submit" class="reg-btn">完成注册</button>
+            </form>
+            <div class="auth-switch" style="margin-top:20px; color:rgba(255,255,255,0.6); font-size:13px;">
+                已有账号？<a href="/login"
+                    style="color:#00ffcc; text-decoration:none; font-weight:bold;">返回登录</a>
+            </div>
+        </div>
+        <div class="copyright-footer">
+            Powered by <a href="https://github.com/AimeiSoul/OnePanel" target="_blank" class="footer-link">OnePanel</a>
+        </div>
+    </div>
+    <script src="/static/js/register.js"></script>
+</body>
+
+</html>

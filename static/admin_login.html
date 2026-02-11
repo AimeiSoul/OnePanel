@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <title>OnePanel - Admin Access</title>
+    <link rel="stylesheet" href="/static/css/admin_style.css">
+    <link rel="icon" type="image/svg+xml" href="/static/logo.svg">
+    <style>
+        .login-wrapper {
+            display: flex;
+            height: 100vh;
+            width: 100%;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12%;
+            overflow: hidden;
+            position: relative;
+            background: radial-gradient(circle at 20% 30%, rgba(108, 92, 231, 0.15), transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(162, 155, 254, 0.1), transparent 40%);
+        }
+
+        .left-placeholder {
+            flex: 1;
+            z-index: 2;
+            opacity: 0;
+            animation: fadeUp 1s ease-out forwards;
+        }
+
+        .admin-main-logo {
+            width: 140px;
+            height: auto;
+            margin-bottom: 30px;
+            filter: drop-shadow(0 0 20px rgba(162, 155, 254, 0.6));
+            animation: logoPulse 4s ease-in-out infinite;
+        }
+
+        .welcome-big-title {
+            font-size: 4.5em;
+            font-weight: 900;
+            letter-spacing: -2px;
+            line-height: 1;
+            background: linear-gradient(to right,
+                    #ffffff 20%,
+                    #a29bef 40%,
+                    #6c5ce7 60%,
+                    #ffffff 80%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shine 5s linear infinite;
+            text-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .welcome-sub-text {
+            font-size: 0.9em;
+            font-weight: 400;
+            opacity: 0.5;
+            margin-top: 15px;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            color: #fff;
+        }
+
+        .right-login-container {
+            opacity: 0;
+            animation: slideInRight 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards;
+            z-index: 2;
+        }
+
+        .login-box {
+            width: 380px;
+            padding: 50px 40px;
+            border: 1px solid rgba(162, 155, 254, 0.2);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        @keyframes shine {
+            to {
+                background-position: 200% center;
+            }
+        }
+
+        @keyframes logoPulse {
+
+            0%,
+            100% {
+                transform: scale(1) translateY(0);
+                filter: drop-shadow(0 0 20px rgba(162, 155, 254, 0.6));
+            }
+
+            50% {
+                transform: scale(1.05) translateY(-10px);
+                filter: drop-shadow(0 0 35px rgba(162, 155, 254, 0.8));
+            }
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(60px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .ambient-glow {
+            position: absolute;
+            top: 50%;
+            left: 15%;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(108, 92, 231, 0.1) 0%, rgba(15, 12, 41, 0) 60%);
+            transform: translate(-50%, -50%);
+            z-index: 1;
+            pointer-events: none;
+            filter: blur(50px);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-wrapper">
+        <div class="ambient-glow"></div>
+
+        <div class="left-placeholder">
+            <img src="/static/logo.svg" alt="OnePanel Logo" class="admin-main-logo">
+            <h1 class="welcome-big-title">OnePanel</h1>
+            <p class="welcome-sub-text">Unified Management Console</p>
+        </div>
+
+        <div class="right-login-container">
+            <div class="admin-card login-box">
+                <div
+                    style="font-size: 14px; font-weight: 700; color: var(--admin-secondary); margin-bottom: 30px; letter-spacing: 2px; opacity: 0.8;">
+                    Admin Login
+                </div>
+
+                <div class="input-group">
+                    <input type="text" id="username" placeholder="Admin Username" class="admin-input">
+                </div>
+                <div class="input-group">
+                    <input type="password" id="password" placeholder="Access Password" class="admin-input"
+                        style="margin-top: 5px;">
+                </div>
+
+                <button onclick="doAdminLogin()" class="admin-btn"
+                    style="width: 100%; margin-top: 30px; padding: 16px; font-size: 15px; letter-spacing: 1px;">
+                    Login
+                </button>
+
+                <div id="error-msg"
+                    style="color: #ff7675; margin-top: 20px; font-size: 13px; text-align: center; min-height: 20px; font-weight: 500;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function doAdminLogin() {
+            const u = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
+            const msg = document.getElementById('error-msg');
+            const btn = document.querySelector('.admin-btn');
+
+            if (!u || !p) {
+                msg.innerText = "Credentials required.";
+                return;
+            }
+
+            msg.innerText = "";
+            btn.innerText = "VERIFYING...";
+            btn.disabled = true;
+
+            try {
+
+                const bodyParams = new URLSearchParams();
+                bodyParams.append('username', u);
+                bodyParams.append('password', p);
+
+                const res = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: bodyParams
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    localStorage.setItem('onepanel_admin_token', data.access_token);
+                    btn.innerText = "ACCESS GRANTED";
+                    btn.style.background = "#00b894";
+                    btn.style.boxShadow = "0 0 20px rgba(0, 184, 148, 0.4)";
+                    setTimeout(() => window.location.href = '/admin', 600);
+                } else {
+                    const err = await res.json();
+                    console.error("Login Error Detail:", err);
+                    msg.innerText = (typeof err.detail === 'string') ? err.detail : "Authentication Failed";
+                    btn.innerText = "INITIALIZE SESSION";
+                    btn.disabled = false;
+                }
+            } catch (e) {
+                msg.innerText = "Connection error.";
+                btn.innerText = "INITIALIZE SESSION";
+                btn.disabled = false;
+            }
+        }
+
+        document.addEventListener('keydown', (e) => { if (e.key === 'Enter') doAdminLogin(); });
+    </script>
+
+    <div class="admin-footer">
+        Powered by <a href="https://github.com/AimeiSoul/OnePanel" target="_blank" class="footer-link">OnePanel</a>
+    </div>
+</body>
+
+</html>
