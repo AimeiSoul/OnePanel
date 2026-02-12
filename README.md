@@ -11,7 +11,7 @@
 
 ## 📖 项目简介
 
-OnePanel 是一个基于 **FastAPI + SQLite + 原生前端** 构建的轻量级导航面板系统，支持：
+OnePanel 是一个基于 **FastAPI + SQLite + 原生前端** 构建的轻量级导航面板系统
 
 ---
 
