@@ -74,7 +74,7 @@ async def toggle_registration(
         db.add(reg_cfg)
 
     db.commit()
-    return {"status": "success", "current": open}
+    return {"status": "success", "registration_open": open}
 
 
 @router.post("/config/site-info")
@@ -162,8 +162,11 @@ async def handle_user_action(
     action: str = Form(...),
     db: Session = Depends(get_db),
     admin: models.User = Depends(admin_required),
-    current_admin: models.User = Depends(get_current_admin),
 ):
+    
+    if user_id == 1:
+        raise HTTPException(403, "初始管理员受保护，无法修改其权限或状态")
+    
     target_user = db.query(models.User).filter(models.User.id == user_id).first()
     if not target_user:
         raise HTTPException(404, "用户不存在")
@@ -193,8 +196,12 @@ async def admin_reset_password(
     db: Session = Depends(get_db),
     admin: models.User = Depends(admin_required),
 ):
-    if len(new_password) < 6:
-        raise HTTPException(status_code=400, detail="新密码长度至少为6位")
+    
+    if user_id == 1 and admin.id != 1:
+        raise HTTPException(status_code=403, detail="无权修改初始管理员密码")
+    
+    if len(new_password) < 8:
+        raise HTTPException(status_code=400, detail="新密码长度至少为8位")
 
     target_user = db.query(models.User).filter(models.User.id == user_id).first()
     if not target_user:
@@ -211,6 +218,10 @@ async def delete_user(
     db: Session = Depends(get_db),
     current_admin: models.User = Depends(get_current_admin),
 ):
+    
+    if user_id == 1:
+        raise HTTPException(status_code=403, detail="初始管理员禁止删除")
+    
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="用户不存在")

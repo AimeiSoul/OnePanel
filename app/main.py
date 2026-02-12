@@ -26,6 +26,7 @@ def init_system_config():
             "site_title": "OnePanel | 洛水天依",
             "favicon_api": "https://favicon.cccyun.cc/${hostname}",
             "risk_keywords": "赌博,博彩,赌场,下注,色情,成人,翻墙,梯子,vpn,加速器,镜像站,代充,破解",
+            "registration_open": "true",
             "custom_styles": "",
             "custom_scripts": ""
         }
@@ -62,11 +63,11 @@ async def read_root_init():
     return FileResponse(os.path.join(config.STATIC_DIR, "init.html"))
 
 @app.get("/login")
-async def read_root_index():
+async def read_root_login():
     return FileResponse(os.path.join(config.STATIC_DIR, "login.html"))
 
 @app.get("/register")
-async def read_root_index():
+async def read_root_register():
     return FileResponse(os.path.join(config.STATIC_DIR, "register.html"))
 
 

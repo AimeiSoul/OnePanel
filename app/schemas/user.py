@@ -1,4 +1,3 @@
-# app/schemas/user.py
 from pydantic import BaseModel, field_validator
 import re
 

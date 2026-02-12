@@ -98,6 +98,7 @@ async def upload_link_icon(
     if not file.content_type.startswith("image/"):
         raise HTTPException(400, "只支持图片上传")
 
+    link_obj = None
     if link_id:
         link_obj = check_link_permission(db, link_id, user)
         if link_obj and link_obj.icon:
@@ -106,9 +107,14 @@ async def upload_link_icon(
     ext = os.path.splitext(file.filename)[1]
     filename = f"{uuid.uuid4()}{ext}"
     save_path = os.path.join(ICONS_DIR, filename)
+    icon_url = f"/static/icons/{filename}"
     
     with open(save_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
+
+    if link_obj:
+        link_obj.icon = icon_url
+        db.commit()
         
     return {"icon_url": f"/static/icons/{filename}"}
 
@@ -119,6 +125,8 @@ async def download_link_icon(
     db: Session = Depends(get_db),
     user: models.User = Depends(get_current_user)
 ):
+    
+    link_obj = None
     if link_id:
         link_obj = check_link_permission(db, link_id, user)
         if link_obj and link_obj.icon:
@@ -136,9 +144,14 @@ async def download_link_icon(
 
         filename = f"{uuid.uuid4()}{ext}"
         save_path = os.path.join(ICONS_DIR, filename)
+        icon_url = f"/static/icons/{filename}"
         
         with open(save_path, "wb") as f:
             f.write(res.content)
+
+        if link_obj:
+            link_obj.icon = icon_url
+            db.commit()
             
         return {"icon_url": f"/static/icons/{filename}"}
     except Exception as e:

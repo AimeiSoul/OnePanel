@@ -139,12 +139,29 @@ function handleSearch(e) {
     }
 }
 
+function resetAddLinkModal() {
+    document.getElementById('modal-link-title').value = '';
+    document.getElementById('modal-link-url').value = '';
+    document.getElementById('modal-icon-input').value = ''; 
+    
+    document.getElementById('modal-icon-path').value = '';
+    
+    document.getElementById('modal-icon-preview').src = '/static/default_link.jpg';
+    
+    if (window.hasOwnProperty('currentEditingLinkId')) {
+        window.currentEditingLinkId = null;
+    }
+}
+
+window.resetAddLinkModal = resetAddLinkModal;
+
 async function submitAddLink(e) {
     e.preventDefault();
     const data = {
         title: document.getElementById('modal-link-title').value,
         url: document.getElementById('modal-link-url').value,
-        group_id: parseInt(document.getElementById('modal-group-id').value)
+        group_id: parseInt(document.getElementById('modal-group-id').value),
+        icon: document.getElementById('modal-icon-path').value || ""
     };
 
     const res = await fetch('/api/links/', {
@@ -158,6 +175,7 @@ async function submitAddLink(e) {
 
     if (res.ok) {
         UI.showToast("添加成功 ✨");
+        resetAddLinkModal();
         UI.closeModal('add-link-modal');
         renderLinks();
     }

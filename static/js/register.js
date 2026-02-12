@@ -59,7 +59,7 @@ function updateIndicator(id, isValid) {
     };
 
     el.innerHTML = `${isValid ? '√' : '❌'} ${baseText[id]}`;
-    el.style.color = isValid ? '#00ffcc' : '#ff4d4d'; 
+    el.style.color = isValid ? '#00ffcc' : '#ff4d4d';
 }
 
 passwordInput.addEventListener('input', validatePassword);
@@ -70,9 +70,20 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
     const username = document.getElementById('reg-username').value;
     const password = document.getElementById('reg-password').value;
     const btn = e.target.querySelector('button');
+    const errorMsg = document.getElementById('reg-error');
 
+    errorMsg.style.opacity = '0';
     btn.innerText = "正在同步数据...";
     btn.disabled = true;
+
+    const showError = (text) => {
+        errorMsg.innerText = text;
+        errorMsg.style.opacity = '1';
+        btn.innerText = "完成注册";
+        btn.disabled = false;
+        errorMsg.style.transform = 'translateX(5px)';
+        setTimeout(() => errorMsg.style.transform = 'translateX(0)', 100);
+    };
 
     try {
         const regRes = await fetch('/api/register', {
@@ -83,7 +94,12 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
 
         if (!regRes.ok) {
             const err = await regRes.json();
-            throw new Error(err.detail || "注册失败");
+            if (regRes.status === 403) {
+                showError("注册功能目前已关闭 🔐");
+            } else {
+                showError(err.detail || "注册失败，请稍后再试");
+            }
+            return;
         }
 
         btn.innerText = "正在为您自动登录...";
@@ -100,14 +116,14 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
         if (loginRes.ok) {
             const data = await loginRes.json();
             localStorage.setItem('onepanel_token', data.access_token);
-            window.location.href = "/"; 
+            btn.innerText = "欢迎加入！跳转中...";
+            setTimeout(() => { window.location.href = "/"; }, 500);
         } else {
-            window.location.href = "/login";
+            showError("自动登录失败，请手动登陆");
         }
 
     } catch (err) {
-        alert(err.message);
-        btn.innerText = "完成注册";
-        btn.disabled = false;
+        showError("连接异常，请确保服务已启动");
+        console.error("Register Error:", err);
     }
 });

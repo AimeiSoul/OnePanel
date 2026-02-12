@@ -202,6 +202,16 @@
     display: none !important;
 }
 
+#init-form button {
+    transition: all 0.3s;
+}
+
+.btn-error {
+    background-color: #ff4757 !important;
+    color: white !important;
+    border-color: #ff4757 !important;
+}
+
 @media (max-width: 768px) {
     .search-wrapper {
         width: 90%;

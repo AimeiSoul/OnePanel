@@ -77,14 +77,16 @@
                     <div class="line"></div>
                 </div>
                 <div class="input-field">
-                    <input type="url" id="modal-link-url" required spellcheck="false">
+                    <input type="url" id="modal-link-url" 
+                        onblur="handleUrlBlur(this.value)"
+                        required spellcheck="false">
                     <label>网址 (URL)</label>
                     <div class="line"></div>
                 </div>
 
                 <div class="icon-setting-group">
                     <div class="icon-preview-box">
-                        <img id="modal-icon-preview" src="/static/default_link.jpg" alt="预览">
+                        <img id="modal-icon-preview" src="/static/default_link.jpg" onerror="this.src='/static/default_link.jpg';" alt="预览">
                     </div>
                     <div class="icon-controls">
                         <div class="input-field mini-field">

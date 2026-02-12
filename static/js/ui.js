@@ -105,9 +105,9 @@ async function renderLinks(container) {
                 </div>` : '';
 
             const cardsHtml = links.map(l => {
-                const iconSrc = getFaviconUrl(l.url);
-                let hostname = "";
-                try { hostname = new URL(l.url).hostname; } catch { hostname = "invalid"; }
+                const iconSrc = (l.icon && l.icon.trim() !== "") 
+                    ? l.icon 
+                    : getFaviconUrl(l.url);
 
                 return `
                 <div class="link-card" id="link-${l.id}" data-link-id="${l.id}">
@@ -115,6 +115,7 @@ async function renderLinks(container) {
                     <a href="${l.url}" target="_blank">
                         <div class="icon-wrapper">
                             <img src="${iconSrc}"
+                                 alt="${l.title}"
                                  onerror="this.onerror=null; this.src='/static/default_link.jpg';">
                         </div>
                         <div class="link-title">${l.title}</div>
@@ -270,7 +271,7 @@ async function checkUrlAccessibility(url, elementId) {
 
         const img = el.querySelector('.icon-wrapper img');
         if (img && img.src.includes('default_error.jpg')) {
-            img.src = getFaviconUrl(url);;
+            img.src = getFaviconUrl(url);
         }
 
     } catch (err) {
@@ -381,7 +382,7 @@ const UI = {
             ${isPublicHidden ? `<button class="glass-btn pulse-hint" onclick="toggleGroupVisibility(1)">👁️ 公共组</button>` : ''}
             <button class="glass-btn" onclick="document.getElementById('bg-input').click()">✨ 换背景</button>
             <button class="glass-btn" onclick="openGroupModal()">📁 建分组</button>
-            <button class="glass-btn" onclick="openModal()">➕ 添链接</button>
+            <button class="glass-btn" onclick="window.openModal()">➕ 添链接</button>
             <button class="glass-btn" onclick="logout()">🚪 退出</button>
         `;
     },
@@ -416,6 +417,9 @@ const UI = {
     openModal(id) {
         const modal = document.getElementById(id);
         if (modal) {
+            if (id === 'add-link-modal' && typeof window.resetAddLinkModal === 'function') {
+                window.resetAddLinkModal();
+            }
             modal.classList.add('active');
             if (id === 'add-link-modal') this.fillGroupSelect();
         }
@@ -473,7 +477,7 @@ const UI = {
         setTimeout(() => {
             toast.classList.remove('show');
             setTimeout(() => toast.remove(), 400);
-        }, 2000);
+        }, 1500);
     },
 
     confirm(title, message, isDanger = false) {
@@ -698,9 +702,23 @@ function resetIcon() {
 
 function autoFetchIcon(siteUrl) {
     const pathInput = document.getElementById('modal-icon-path');
+    const previewImg = document.getElementById('modal-icon-preview');
     if (!pathInput.value && siteUrl) {
         const faviconUrl = getFaviconUrl(siteUrl);
-        document.getElementById('modal-icon-preview').src = faviconUrl;
+        previewImg.src = faviconUrl;
+    }
+}
+
+function handleUrlBlur(url) {
+    const pathInput = document.getElementById('modal-icon-path');
+    const previewImg = document.getElementById('modal-icon-preview');
+    
+    if (url && !pathInput.value) {
+        const faviconUrl = getFaviconUrl(url);
+        previewImg.src = faviconUrl;
+        
+        previewImg.style.transform = 'scale(1.1)';
+        setTimeout(() => previewImg.style.transform = 'scale(1)', 200);
     }
 }
 

@@ -133,7 +133,7 @@ async function loadConfig() {
         if (config.favicon_api) document.getElementById('favicon-api').value = config.favicon_api;
         const regSwitch = document.getElementById('reg-switch');
         if (regSwitch) {
-            regSwitch.checked = config.registration_open;
+            regSwitch.checked = (config.registration_open === true || config.registration_open === "true");
             regSwitch.onchange = (e) => updateRegStatus(e.target.checked);
         }
     } catch (e) {
