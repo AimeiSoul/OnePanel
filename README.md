@@ -111,13 +111,13 @@ OnePanel/
 国际可直接执行：
 
 ```bash
-bash <(curl -sL https://raw.githubusercontent.com/AimeiSoul/OnePanel/main/install.sh)
+bash <(curl -sL https://raw.githubusercontent.com/AimeiSoul/OnePanel/refs/heads/main/start.sh)
 ```
 
 国内：
 
 ```bash
-bash <(curl -sL https://gitee.com/aimeisoul/onepanel/raw/main/install.sh)
+bash <(curl -sL https://gitee.com/aimeisoul/onepanel/raw/main/start.sh)
 ```
 
 ---
