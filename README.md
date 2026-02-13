@@ -108,7 +108,7 @@ OnePanel/
 # 🚀 一键安装脚本部署（推荐）
 
 
-国际可直接执行：
+国际：
 
 ```bash
 bash <(curl -sL https://raw.githubusercontent.com/AimeiSoul/OnePanel/refs/heads/main/start.sh)
