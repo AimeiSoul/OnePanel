@@ -9,9 +9,17 @@
 
 ---
 
-## 📖 项目简介
+# 📖 项目简介
 
-OnePanel 是一个基于 **FastAPI + SQLite + 原生前端** 构建的轻量级导航面板系统
+OnePanel 是一个基于 **FastAPI + SQLite + 原生前端** 构建的轻量级导航面板系统。
+
+无需 MySQL，无需 Redis，开箱即用。
+
+适合：
+
+* 个人导航主页
+* 内网快捷导航
+* 小团队链接管理
 
 ---
 
@@ -19,13 +27,13 @@ OnePanel 是一个基于 **FastAPI + SQLite + 原生前端** 构建的轻量级�
 
 普通用户可进行以下操作：
 
-* 🔐 用户注册 / 登录 / JWT 认证
-* 🖼 自定义背景图
-* 🗂 创建与管理个人分组
-* 🔗 创建、编辑、删除个人链接
-* 👀 访客模式（未登录可浏览公共分组）
-* ⚡ 轻量快速响应
-* 🗄 本地 SQLite 存储，无需额外数据库
+* 🔐 注册 / 登录 / JWT 认证
+* 🖼 自定义背景
+* 🗂 分组管理
+* 🔗 链接管理
+* 👀 访客模式
+* ⚡ 极轻量响应
+* 🗄 SQLite 本地存储
 
 ---
 
@@ -33,23 +41,15 @@ OnePanel 是一个基于 **FastAPI + SQLite + 原生前端** 构建的轻量级�
 
 管理员拥有全局控制权限，包括：
 
-* 🔐 管理员登录认证
-* ⚙ 基础系统设置管理
-* 🔓 注册开关控制（可关闭用户注册）
-* 🔍 链接合规性检测
-* 👥 用户管理（启用 / 禁用 / 管理用户）
+* 🔐 管理员认证
+* ⚙ 系统设置
+* 🔓 注册开关
+* 👥 用户管理
 * 🗂 全局链接查看
-* 💻 自定义代码注入（美化页面功能）
+* 💻 自定义代码注入
+* 🔍 链接合法性检测
+* 🖼 全局背景管理
 
----
-
-### 🎯 适用场景
-
-* 个人导航主页
-* 内网导航面板
-* 服务器快捷入口
-* 自托管个人仪表盘
-* 小型团队内部链接管理
 
 ---
 
@@ -94,18 +94,35 @@ OnePanel/
 
 ## ⚙️ 技术栈
 
-| 类型   | 技术                 |
-| ---- | ------------------ |
-| 后端   | FastAPI            |
-| 数据库  | SQLite             |
-| ORM  | SQLAlchemy         |
-| 认证   | JWT                |
-| 密码加密 | Passlib            |
-| 前端   | 原生 HTML + CSS + JS |
+| 类型  | 技术              |
+| --- | --------------- |
+| 后端  | FastAPI         |
+| ORM | SQLAlchemy      |
+| 数据库 | SQLite          |
+| 认证  | JWT             |
+| 加密  | Passlib         |
+| 前端  | HTML + CSS + JS |
 
 ---
 
-## 🚀 快速开始
+# 🚀 一键安装脚本部署（推荐）
+
+
+国际可直接执行：
+
+```bash
+bash <(curl -sL https://raw.githubusercontent.com/AimeiSoul/OnePanel/main/install.sh)
+```
+
+国内：
+
+```bash
+bash <(curl -sL https://gitee.com/aimeisoul/onepanel/raw/main/install.sh)
+```
+
+---
+
+## 🚀 源码部署
 
 ### 1️⃣ 克隆项目
 
@@ -203,12 +220,45 @@ http://127.0.0.1:8000
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-建议配合：
+### 可通过systemd 守护运行（推荐）
+
+创建：
+
+```
+/etc/systemd/system/onepanel.service
+```
+
+内容：
+
+```ini
+[Unit]
+Description=OnePanel
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/opt/OnePanel
+ExecStart=/opt/OnePanel/venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+然后：
+
+```bash
+systemctl daemon-reload
+systemctl enable onepanel
+systemctl start onepanel
+```
+
+---
+
+### 建议配合：
 
 * Nginx 反向代理
 * HTTPS（Let’s Encrypt）
-* Docker 部署（后续工作）
-
 
 ---
 
