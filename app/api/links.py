@@ -5,7 +5,7 @@ import requests
 import uuid
 import os
 from app.api.deps import get_db, get_current_user, get_optional_user
-from app.schemas.link import LinkCreate, LinkOut
+from app.schemas.link import LinkCreate, LinkOut, LinkUpdate
 from app import models
 from pydantic import BaseModel
 from typing import List
@@ -63,6 +63,43 @@ async def add_link(
     db.commit()
     db.refresh(new_link)
     return new_link
+
+
+@router.put("/{link_id}", response_model=LinkOut)
+async def update_link(
+    link_id: int,
+    payload: LinkUpdate,
+    db: Session = Depends(get_db),
+    user: models.User = Depends(get_current_user),
+):
+    link = check_link_permission(db, link_id, user)
+
+    if payload.group_id == 1 and user.id != 1:
+        raise HTTPException(status_code=403, detail="无法移动到公共分组")
+
+    target_group = (
+        db.query(models.Group)
+        .filter(models.Group.id == payload.group_id, models.Group.user_id == user.id)
+        .first()
+    )
+    if not target_group and not (payload.group_id == 1 and user.id == 1):
+        raise HTTPException(status_code=403, detail="目标分组不存在或无权操作")
+
+    old_url = link.url
+    link.title = payload.title
+    link.url = payload.url
+    link.icon = payload.icon or None
+
+    if link.group_id != payload.group_id:
+        link.group_id = payload.group_id
+        link.order = db.query(models.Link).filter(models.Link.group_id == payload.group_id).count()
+
+    if old_url != payload.url:
+        link.http_title = await get_remote_http_title(payload.url)
+
+    db.commit()
+    db.refresh(link)
+    return link
 
 def check_link_permission(db: Session, link_id: int, user: models.User):
     if link_id is None:

@@ -182,25 +182,8 @@
     border: 2px dashed var(--primary-color) !important;
 }
 
-.group-drag-handle {
-    cursor: grab;
-    padding: 0 10px;
-    color: rgba(255, 255, 255, 0.3);
-}
 
-.empty-link-placeholder {
-    grid-column: 1 / -1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    border: 1px dashed rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-}
 
-.links-grid:has(.link-card) .empty-link-placeholder {
-    display: none !important;
-}
 
 #init-form button {
     transition: all 0.3s;

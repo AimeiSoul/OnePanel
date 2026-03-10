@@ -17,6 +17,13 @@ class LinkCreate(BaseModel):
     order: Optional[int] = 0
 
 
+class LinkUpdate(BaseModel):
+    title: str
+    url: str
+    group_id: int
+    icon: Optional[str] = None
+
+
 class LinkOut(LinkBase):
     id: int
     group_id: int

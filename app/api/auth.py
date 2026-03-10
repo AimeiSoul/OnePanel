@@ -112,7 +112,9 @@ async def upload_background(
 
         old_bg_relative = current_user.custom_bg.lstrip("/")
 
-        old_bg_path = os.path.join(os.getcwd(), old_bg_relative)
+        static_root = os.path.dirname(config.STATIC_DIR)
+
+        old_bg_path = os.path.join(static_root, old_bg_relative)
 
 
         if os.path.exists(old_bg_path) and "default_bg" not in old_bg_path:

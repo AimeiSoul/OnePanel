@@ -38,6 +38,7 @@ function adminLogout() {
 }
 
 let editorsInitialized = false;
+let systemInfoTimer = null;
 
 function switchTab(tabId) {
     document.querySelectorAll('.content-section').forEach(s => s.style.display = 'none');
@@ -50,6 +51,8 @@ function switchTab(tabId) {
 
     window.location.hash = tabId;
 
+    stopSystemInfoAutoRefresh();
+
     if (tabId === 'settings') {
         loadConfig();
     } else if (tabId === 'users') {
@@ -58,6 +61,9 @@ function switchTab(tabId) {
         loadLinks(1);
     } else if (tabId === 'icons') {
         loadUnusedIcons();
+    } else if (tabId === 'system') {
+        loadSystemInfo(true);
+        startSystemInfoAutoRefresh();
     } else if (tabId === 'custom') {
         if (!editorsInitialized) {
             initCodeEditors();
@@ -120,6 +126,72 @@ function showToast(message, type = 'success') {
         toast.classList.remove('show');
         setTimeout(() => toast.remove(), 400);
     }, 2000);
+}
+
+function setText(id, value) {
+    const element = document.getElementById(id);
+    if (element) element.textContent = value ?? '-';
+}
+
+function setUsageBar(id, percent) {
+    const element = document.getElementById(id);
+    if (element) element.style.width = `${Math.max(0, Math.min(percent || 0, 100))}%`;
+}
+
+function updateLastUpdated() {
+    const element = document.getElementById('system-last-updated');
+    if (!element) return;
+    element.textContent = `最后更新：${new Date().toLocaleTimeString()}`;
+}
+
+async function loadSystemInfo(force = false) {
+    const token = localStorage.getItem('onepanel_admin_token');
+    try {
+        const res = await fetch('/api/admin/system-info', {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (!res.ok) {
+            throw new Error(data.detail || '加载系统信息失败');
+        }
+
+        const memoryUsage = Number(data.memory?.usage_percent ?? 0);
+        const diskUsage = Number(data.disk?.usage_percent ?? 0);
+        const cpuCores = Number(data.cpu?.logical_cores ?? 0);
+        const cpuUsage = Number(data.cpu?.usage_percent ?? 0);
+        const cpuBar = cpuUsage;
+
+        setText('system-version', data.version);
+        setText('system-site-title', data.site_title);
+        setText('system-name', data.system?.name);
+        setText('system-os-version', data.system?.version);
+        setText('system-cpu-processor', data.cpu?.processor);
+        setText('system-cpu-model', data.cpu?.model || data.cpu?.processor);
+        setText('system-cpu-arch', data.cpu?.architecture);
+        setText('system-cpu-usage', `${cpuUsage.toFixed(1)}%`);
+        setText('system-cpu-cores', `${cpuCores}`);
+        setText('system-memory-total', data.memory?.total);
+        setText('system-memory-used', data.memory?.used);
+        setText('system-memory-available', data.memory?.available);
+        setText('system-memory-usage', `${memoryUsage.toFixed(1)}%`);
+        setText('system-disk-total', data.disk?.total);
+        setText('system-disk-used', data.disk?.used);
+        setText('system-disk-free', data.disk?.free);
+        setText('system-disk-usage', `${diskUsage.toFixed(1)}%`);
+        setText('system-memory-note', '内存使用率');
+        setText('system-disk-note', '磁盘使用率');
+        setText('system-cpu-note', 'CPU 使用率');
+
+        setUsageBar('system-memory-bar', memoryUsage);
+        setUsageBar('system-disk-bar', diskUsage);
+        setUsageBar('system-cpu-bar', cpuBar);
+        updateLastUpdated();
+    } catch (error) {
+        console.error('加载系统信息失败:', error);
+        if (force) {
+            showToast('加载系统信息失败', 'error');
+        }
+    }
 }
 
 async function loadConfig() {
@@ -804,10 +876,26 @@ async function saveCustomCode() {
     }
 }
 
+function stopSystemInfoAutoRefresh() {
+    if (systemInfoTimer) {
+        clearInterval(systemInfoTimer);
+        systemInfoTimer = null;
+    }
+}
+
+function startSystemInfoAutoRefresh() {
+    stopSystemInfoAutoRefresh();
+    systemInfoTimer = setInterval(() => {
+        if ((window.location.hash.replace('#', '') || 'system') === 'system') {
+            loadSystemInfo(false);
+        }
+    }, 120000);
+}
+
 window.addEventListener('DOMContentLoaded', () => {
     checkAdminAuth();
 
-    const currentTab = window.location.hash.replace('#', '') || 'settings';
+    const currentTab = window.location.hash.replace('#', '') || 'system';
 
     switchTab(currentTab);
 });

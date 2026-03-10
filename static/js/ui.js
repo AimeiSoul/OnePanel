@@ -90,6 +90,8 @@ async function renderLinks(container) {
             return;
         }
 
+        window.linkRegistry = {};
+
         target.innerHTML = groups.map(group => {
             const links = group.links || [];
             const isPublic = group.id === 1;
@@ -105,13 +107,19 @@ async function renderLinks(container) {
                 </div>` : '';
 
             const cardsHtml = links.map(l => {
-                const iconSrc = (l.icon && l.icon.trim() !== "") 
-                    ? l.icon 
+                window.linkRegistry[l.id] = { ...l, group_id: group.id };
+
+                const iconSrc = (l.icon && l.icon.trim() !== "")
+                    ? l.icon
                     : getFaviconUrl(l.url);
 
                 return `
                 <div class="link-card" id="link-${l.id}" data-link-id="${l.id}">
-                    ${(token && !isReadonly) ? `<div class="delete-btn" onclick="confirmDelete(event, ${l.id})"></div>` : ''}
+                    ${(token && !isReadonly) ? `
+                        <div class="link-actions">
+                            <button type="button" class="link-action-btn edit-btn" onclick="openEditLinkModalById(event, ${l.id})" aria-label="Edit link" title="编辑"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm14.71-9.04a1.003 1.003 0 000-1.42l-2.5-2.5a1.003 1.003 0 00-1.42 0l-1.96 1.96 3.75 3.75 2.13-2.09z"/></svg></button>
+                            <button type="button" class="link-action-btn delete-btn" onclick="confirmDelete(event, ${l.id})" aria-label="Delete link" title="删除"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12l-1 14H7L6 7zm3-3h6l1 2h4v2H4V6h4l1-2z"/></svg></button>
+                        </div>` : ''}
                     <a href="${l.url}" target="_blank">
                         <div class="icon-wrapper">
                             <img src="${iconSrc}"
@@ -624,12 +632,11 @@ document.getElementById('bg-input')?.addEventListener('change', async e => {
     }
 });
 
-let currentEditingLinkId = null;
+window.currentEditingLinkId = null;
 
 function updateModalIconPreview(path) {
     const previewImg = document.getElementById('modal-icon-preview');
     const pathInput = document.getElementById('modal-icon-path');
-
     const finalPath = path || '/static/default_link.jpg';
 
     previewImg.src = finalPath;
@@ -642,8 +649,8 @@ async function uploadIconFile(input) {
 
     const formData = new FormData();
     formData.append('file', file);
-    if (currentEditingLinkId) {
-        formData.append('link_id', currentEditingLinkId);
+    if (window.currentEditingLinkId) {
+        formData.append('link_id', window.currentEditingLinkId);
     }
 
     try {
@@ -655,12 +662,12 @@ async function uploadIconFile(input) {
         const data = await res.json();
         if (res.ok) {
             updateModalIconPreview(data.icon_url);
-            showToast("图标上传成功");
+            UI.showToast('图标上传成功');
         } else {
-            showToast(data.detail || "上传失败", "error");
+            UI.showToast(data.detail || '上传失败', false);
         }
     } catch (e) {
-        showToast("服务器连接失败", "error");
+        UI.showToast('服务器连接失败', false);
     } finally {
         input.value = '';
     }
@@ -668,12 +675,12 @@ async function uploadIconFile(input) {
 
 async function downloadIconFromUrl() {
     const url = document.getElementById('modal-icon-input').value;
-    if (!url) return showToast("请先输入图标 URL", "warning");
+    if (!url) return UI.showToast('请先输入图标 URL', false);
 
     const formData = new FormData();
     formData.append('url', url);
-    if (currentEditingLinkId) {
-        formData.append('link_id', currentEditingLinkId);
+    if (window.currentEditingLinkId) {
+        formData.append('link_id', window.currentEditingLinkId);
     }
 
     try {
@@ -685,54 +692,64 @@ async function downloadIconFromUrl() {
         const data = await res.json();
         if (res.ok) {
             updateModalIconPreview(data.icon_url);
-            showToast("抓取成功并已保存");
+            UI.showToast('抓取成功并已保存');
         } else {
-            showToast(data.detail || "抓取失败", "error");
+            UI.showToast(data.detail || '抓取失败', false);
         }
     } catch (e) {
-        showToast("网络请求异常", "error");
+        UI.showToast('网络请求异常', false);
     }
 }
 
 function resetIcon() {
     updateModalIconPreview(null);
     document.getElementById('modal-icon-input').value = '';
-    showToast("已重置为默认获取");
+    UI.showToast('已重置为默认获取');
 }
 
 function autoFetchIcon(siteUrl) {
     const pathInput = document.getElementById('modal-icon-path');
     const previewImg = document.getElementById('modal-icon-preview');
     if (!pathInput.value && siteUrl) {
-        const faviconUrl = getFaviconUrl(siteUrl);
-        previewImg.src = faviconUrl;
+        previewImg.src = getFaviconUrl(siteUrl);
     }
 }
 
 function handleUrlBlur(url) {
     const pathInput = document.getElementById('modal-icon-path');
     const previewImg = document.getElementById('modal-icon-preview');
-    
+
     if (url && !pathInput.value) {
-        const faviconUrl = getFaviconUrl(url);
-        previewImg.src = faviconUrl;
-        
+        previewImg.src = getFaviconUrl(url);
         previewImg.style.transform = 'scale(1.1)';
-        setTimeout(() => previewImg.style.transform = 'scale(1)', 200);
+        setTimeout(() => {
+            previewImg.style.transform = 'scale(1)';
+        }, 200);
     }
 }
 
 function closeModal() {
     document.getElementById('add-link-modal').classList.remove('active');
-    currentEditingLinkId = null;
+    window.currentEditingLinkId = null;
     updateModalIconPreview(null);
     document.getElementById('modal-icon-input').value = '';
+    if (typeof window.setLinkModalMode === 'function') {
+        window.setLinkModalMode(false);
+    }
 }
 
-function openEditLinkModal(link) {
-    currentEditingLinkId = link.id;
-    document.getElementById('modal-link-title').value = link.title;
-    document.getElementById('modal-link-url').value = link.url;
+async function openEditLinkModal(link) {
+    if (!link) return;
+
+    if (typeof UI.fillGroupSelect === 'function') {
+        await UI.fillGroupSelect();
+    }
+
+    window.currentEditingLinkId = link.id;
+    document.getElementById('modal-link-title').value = link.title || '';
+    document.getElementById('modal-link-url').value = link.url || '';
+    document.getElementById('modal-group-id').value = String(link.group_id);
+    document.getElementById('modal-icon-input').value = '';
 
     if (link.icon) {
         updateModalIconPreview(link.icon);
@@ -741,10 +758,23 @@ function openEditLinkModal(link) {
         autoFetchIcon(link.url);
     }
 
+    if (typeof window.setLinkModalMode === 'function') {
+        window.setLinkModalMode(true);
+    }
+
     document.getElementById('add-link-modal').classList.add('active');
+}
+
+function openEditLinkModalById(event, linkId) {
+    event.stopPropagation();
+    event.preventDefault();
+    openEditLinkModal(window.linkRegistry?.[linkId]);
 }
 
 function logout() {
     localStorage.removeItem('onepanel_token');
     window.location.reload();
 }
+
+window.openEditLinkModalById = openEditLinkModalById;
+window.openEditLinkModal = openEditLinkModal;

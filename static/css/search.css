@@ -30,7 +30,9 @@
 .engine-pill {
     display: flex;
     align-items: center;
-    padding: 8px 16px;
+    justify-content: center;
+    min-width: 50px;
+    padding: 6px 10px;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 25px;
     cursor: pointer;
@@ -50,11 +52,6 @@
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
-#current-engine-icon {
-    font-size: 14px;
-    font-weight: bold;
-    color: var(--primary-color);
-}
 
 .chevron-icon {
     width: 14px;
@@ -94,25 +91,12 @@
     animation: slideDown 0.2s ease;
 }
 
-.engine-logo-img {
-    width: 20px;
-    height: 20px;
-    border-radius: 4px;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-}
-
 .menu-logo {
     width: 16px;
     height: 16px;
     margin-right: 10px;
     vertical-align: middle;
     border-radius: 2px;
-}
-
-.engine-pill {
-    padding: 6px 10px;
-    min-width: 50px;
-    justify-content: center;
 }
 
 .menu-item {

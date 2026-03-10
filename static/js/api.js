@@ -134,3 +134,19 @@ async function deleteGroup(groupId) {
 async function hideGroup(groupId) {
     await toggleGroupVisibility(groupId);
 }
+
+async function updateLink(linkId, data) {
+    const token = localStorage.getItem('onepanel_token');
+
+    const res = await fetch(`/api/links/${linkId}`, {
+        method: 'PUT',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    });
+
+    if (!res.ok) throw new Error("更新链接失败");
+    return await res.json();
+}

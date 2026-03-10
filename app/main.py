@@ -1,21 +1,16 @@
-from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 import os
-from app.database import engine
-from app import models
-from app.api import auth, admin, links, init, group
-from app.database import engine
-from app import models
-from app.core import config
+
+from fastapi import FastAPI
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
+
+from app import models
+from app.api import admin, auth, group, init, links
+from app.core import config
 from app.database import SessionLocal, engine
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-DB_DIR = os.path.join(BASE_DIR, "data")
-DB_DIRDIR = os.path.join(DB_DIR, "onepanel.db")
-if not os.path.exists(DB_DIRDIR):
-    models.Base.metadata.create_all(bind=engine)
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="OnePanel")
 

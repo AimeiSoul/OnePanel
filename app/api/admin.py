@@ -1,19 +1,236 @@
+import ctypes
+import os
+import platform
+import re
+import shutil
+import subprocess
+import time
+from pathlib import Path
+try:
+    import winreg
+except ImportError:
+    winreg = None
+from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from fastapi.security import OAuth2PasswordRequestForm
-from typing import Optional
 from sqlalchemy.orm import Session
-from app.database import get_db
-from app import models, schemas
-from app.schemas.link import LinkPaginationOut
-from app.core import security
+
 from app.api.deps import admin_required, get_current_admin
 from app.core import security
 from app.core.config import ICONS_DIR
-import shutil
-import os
-import re
+from app.database import get_db
+from app import models, schemas
+from app.schemas.link import LinkPaginationOut
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+
+def format_bytes(num_bytes: int) -> str:
+    units = ["B", "KB", "MB", "GB", "TB"]
+    size = float(num_bytes)
+    for unit in units:
+        if size < 1024 or unit == units[-1]:
+            return f"{size:.1f} {unit}"
+        size /= 1024
+    return f"{size:.1f} TB"
+
+
+def get_memory_info() -> dict:
+    system_name = platform.system().lower()
+
+    if system_name == "windows":
+        class MemoryStatus(ctypes.Structure):
+            _fields_ = [
+                ("dwLength", ctypes.c_ulong),
+                ("dwMemoryLoad", ctypes.c_ulong),
+                ("ullTotalPhys", ctypes.c_ulonglong),
+                ("ullAvailPhys", ctypes.c_ulonglong),
+                ("ullTotalPageFile", ctypes.c_ulonglong),
+                ("ullAvailPageFile", ctypes.c_ulonglong),
+                ("ullTotalVirtual", ctypes.c_ulonglong),
+                ("ullAvailVirtual", ctypes.c_ulonglong),
+                ("sullAvailExtendedVirtual", ctypes.c_ulonglong),
+            ]
+
+        memory_status = MemoryStatus()
+        memory_status.dwLength = ctypes.sizeof(MemoryStatus)
+        ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(memory_status))
+        total = int(memory_status.ullTotalPhys)
+        available = int(memory_status.ullAvailPhys)
+    else:
+        meminfo = Path("/proc/meminfo")
+        if meminfo.exists():
+            info_map = {}
+            for line in meminfo.read_text(encoding="utf-8").splitlines():
+                key, value = line.split(":", 1)
+                info_map[key] = int(value.strip().split()[0]) * 1024
+            total = info_map.get("MemTotal", 0)
+            available = info_map.get("MemAvailable", info_map.get("MemFree", 0))
+        else:
+            total = 0
+            available = 0
+
+    used = max(total - available, 0)
+    usage_percent = round((used / total) * 100, 1) if total else 0
+    return {
+        "total": format_bytes(total),
+        "used": format_bytes(used),
+        "available": format_bytes(available),
+        "usage_percent": usage_percent,
+    }
+
+
+def get_disk_info() -> dict:
+    usage = shutil.disk_usage(PROJECT_ROOT.drive or PROJECT_ROOT)
+    used = usage.total - usage.free
+    usage_percent = round((used / usage.total) * 100, 1) if usage.total else 0
+    return {
+        "total": format_bytes(usage.total),
+        "used": format_bytes(used),
+        "free": format_bytes(usage.free),
+        "usage_percent": usage_percent,
+    }
+
+
+def get_version() -> str:
+    version_file = PROJECT_ROOT / "VERSION"
+    if version_file.exists():
+        return version_file.read_text(encoding="utf-8").lstrip('\ufeff').strip()
+    return "unknown"
+
+
+def get_cpu_usage_percent(interval: float = 0.12) -> float:
+    system_name = platform.system().lower()
+
+    if system_name == 'windows':
+        class FileTime(ctypes.Structure):
+            _fields_ = [('dwLowDateTime', ctypes.c_ulong), ('dwHighDateTime', ctypes.c_ulong)]
+
+        def filetime_to_int(file_time: FileTime) -> int:
+            return (file_time.dwHighDateTime << 32) | file_time.dwLowDateTime
+
+        def read_times() -> tuple[int, int, int]:
+            idle_time = FileTime()
+            kernel_time = FileTime()
+            user_time = FileTime()
+            ctypes.windll.kernel32.GetSystemTimes(
+                ctypes.byref(idle_time),
+                ctypes.byref(kernel_time),
+                ctypes.byref(user_time),
+            )
+            return (
+                filetime_to_int(idle_time),
+                filetime_to_int(kernel_time),
+                filetime_to_int(user_time),
+            )
+
+        idle_1, kernel_1, user_1 = read_times()
+        time.sleep(interval)
+        idle_2, kernel_2, user_2 = read_times()
+        idle_delta = idle_2 - idle_1
+        total_delta = (kernel_2 - kernel_1) + (user_2 - user_1)
+        if total_delta <= 0:
+            return 0.0
+        return round((1 - idle_delta / total_delta) * 100, 1)
+
+    stat_file = Path('/proc/stat')
+    if stat_file.exists():
+        def read_cpu_times() -> list[int]:
+            first_line = stat_file.read_text(encoding='utf-8').splitlines()[0]
+            return [int(value) for value in first_line.split()[1:]]
+
+        times_1 = read_cpu_times()
+        time.sleep(interval)
+        times_2 = read_cpu_times()
+        idle_delta = (times_2[3] + times_2[4]) - (times_1[3] + times_1[4]) if len(times_2) > 4 else times_2[3] - times_1[3]
+        total_delta = sum(times_2) - sum(times_1)
+        if total_delta <= 0:
+            return 0.0
+        return round((1 - idle_delta / total_delta) * 100, 1)
+
+    return 0.0
+
+
+def normalize_cpu_brand(brand: str) -> str:
+    if not brand:
+        return "Unknown"
+
+    patterns = [
+        r"(i[3579]-\d{4,5}[A-Z]{0,2})",
+        r"(Ultra\s+[3579]\s+\d{3}[A-Z]{0,2})",
+        r"(Ryzen\s+[3579]\s+\d{4,5}[A-Z]{0,2}(?:3D)?)",
+        r"(Ryzen\s+Threadripper\s+\d{4,5}[A-Z]{0,2})",
+        r"(EPYC\s+\d{3,4})",
+        r"(Xeon\s+[A-Z]?-?\d{4,5}[A-Z0-9-]*)",
+        r"(M[1234](?:\s+(?:Pro|Max|Ultra))?)",
+        r"(A\d{2}(?:X|Z)?)",
+    ]
+
+    for pattern in patterns:
+        match = re.search(pattern, brand, flags=re.IGNORECASE)
+        if match:
+            return match.group(1).replace('  ', ' ').strip()
+
+    cleaned = re.sub(r"\s+CPU.*$", "", brand, flags=re.IGNORECASE)
+    cleaned = re.sub(r"\s+@.*$", "", cleaned)
+    cleaned = re.sub(r"\(R\)|\(TM\)|\(C\)", "", cleaned, flags=re.IGNORECASE)
+    return re.sub(r"\s+", " ", cleaned).strip()
+
+
+def get_cpu_brand_string() -> str:
+    system_name = platform.system().lower()
+
+    if system_name == 'windows' and winreg is not None:
+        try:
+            with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"HARDWARE\DESCRIPTION\System\CentralProcessor\0") as key:
+                value, _ = winreg.QueryValueEx(key, 'ProcessorNameString')
+                return str(value).strip()
+        except OSError:
+            pass
+
+    if system_name == 'linux':
+        cpuinfo = Path('/proc/cpuinfo')
+        if cpuinfo.exists():
+            for line in cpuinfo.read_text(encoding='utf-8', errors='ignore').splitlines():
+                if ':' in line:
+                    key, value = line.split(':', 1)
+                    if key.strip().lower() in {'model name', 'hardware'}:
+                        return value.strip()
+
+    if system_name == 'darwin':
+        try:
+            result = subprocess.run(
+                ['sysctl', '-n', 'machdep.cpu.brand_string'],
+                capture_output=True,
+                text=True,
+                check=True,
+                timeout=2,
+            )
+            brand = result.stdout.strip()
+            if brand:
+                return brand
+        except Exception:
+            pass
+        try:
+            result = subprocess.run(
+                ['sysctl', '-n', 'machdep.cpu.brand_string'],
+                capture_output=True,
+                text=True,
+                check=True,
+                timeout=2,
+            )
+            return result.stdout.strip()
+        except Exception:
+            pass
+
+    return platform.processor() or 'Unknown'
+
+
+def get_cpu_model() -> str:
+    return normalize_cpu_brand(get_cpu_brand_string())
 
 
 @router.post("/login")
@@ -51,6 +268,40 @@ async def get_config(
         "registration_open": cfg_dict.get("registration_open") == "true",
         "site_title": cfg_dict.get("site_title", ""),
         "favicon_api": cfg_dict.get("favicon_api", ""),
+    }
+
+
+@router.get("/system-info")
+async def get_system_info(
+    db: Session = Depends(get_db), admin: models.User = Depends(get_current_admin)
+):
+    cfg_dict = {
+        item.key: item.value
+        for item in db.query(models.SystemConfig)
+        .filter(models.SystemConfig.key.in_(["site_title"]))
+        .all()
+    }
+
+    os_name = platform.system()
+    os_version = platform.version() if os_name == "Windows" else platform.release()
+
+    return {
+        "version": get_version(),
+        "site_title": cfg_dict.get("site_title", "OnePanel"),
+        "system": {
+            "name": os_name,
+            "version": os_version,
+            "platform": platform.platform(),
+        },
+        "cpu": {
+            "architecture": platform.machine(),
+            "logical_cores": os.cpu_count() or 0,
+            "processor": get_cpu_brand_string(),
+            "model": get_cpu_model(),
+            "usage_percent": get_cpu_usage_percent(),
+        },
+        "memory": get_memory_info(),
+        "disk": get_disk_info(),
     }
 
 
