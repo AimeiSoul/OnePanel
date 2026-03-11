@@ -5,6 +5,7 @@ import re
 import shutil
 import subprocess
 import time
+import distro
 from pathlib import Path
 try:
     import winreg
@@ -155,30 +156,38 @@ def get_cpu_usage_percent(interval: float = 0.12) -> float:
 
 
 def normalize_cpu_brand(brand: str) -> str:
-    if not brand:
+    if not brand or brand.lower() == "unknown":
         return "Unknown"
 
-    patterns = [
-        r"(i[3579]-\d{4,5}[A-Z]{0,2})",
-        r"(Ultra\s+[3579]\s+\d{3}[A-Z]{0,2})",
-        r"(Ryzen\s+[3579]\s+\d{4,5}[A-Z]{0,2}(?:3D)?)",
-        r"(Ryzen\s+Threadripper\s+\d{4,5}[A-Z]{0,2})",
-        r"(EPYC\s+\d{3,4})",
-        r"(Xeon\s+[A-Z]?-?\d{4,5}[A-Z0-9-]*)",
-        r"(M[1234](?:\s+(?:Pro|Max|Ultra))?)",
-        r"(A\d{2}(?:X|Z)?)",
+    brand_lower = brand.lower()
+    is_intel = "intel" in brand.lower()
+    is_amd = "amd" in brand.lower()
+    is_apple = "apple" in brand.lower()
+
+    brand = re.sub(r"\(R\)|\(TM\)|\(C\)", "", brand, flags=re.IGNORECASE)
+    brand = re.sub(r"(@?\s?[\d.]+\s?GHz).*$", "", brand, flags=re.IGNORECASE)
+
+    redundant_words = [
+        r"CPU", r"Processor", r"\d+-Core", r"Series", 
+        r"Genuine", r"Authentic", r"Technology",
+        r"\d+th\s+Gen", r"\d+st\s+Gen", r"\d+nd\s+Gen", r"\d+rd\s+Gen"
     ]
 
-    for pattern in patterns:
-        match = re.search(pattern, brand, flags=re.IGNORECASE)
-        if match:
-            return match.group(1).replace('  ', ' ').strip()
+    for word in redundant_words:
+        brand = re.sub(word, "", brand, flags=re.IGNORECASE)
 
-    cleaned = re.sub(r"\s+CPU.*$", "", brand, flags=re.IGNORECASE)
-    cleaned = re.sub(r"\s+@.*$", "", cleaned)
-    cleaned = re.sub(r"\(R\)|\(TM\)|\(C\)", "", cleaned, flags=re.IGNORECASE)
-    return re.sub(r"\s+", " ", cleaned).strip()
+    brand = re.sub(r"Intel|Core|AMD|Apple", "", brand, flags=re.IGNORECASE)
 
+    brand = re.sub(r"\s+", " ", brand).strip()
+
+    if is_intel:
+        return f"Intel {brand}"
+    if is_amd:
+        return f"AMD {brand}"
+    if is_apple:
+        return f"Apple {brand}"
+
+    return brand
 
 def get_cpu_brand_string() -> str:
     system_name = platform.system().lower()
@@ -194,11 +203,10 @@ def get_cpu_brand_string() -> str:
     if system_name == 'linux':
         cpuinfo = Path('/proc/cpuinfo')
         if cpuinfo.exists():
-            for line in cpuinfo.read_text(encoding='utf-8', errors='ignore').splitlines():
-                if ':' in line:
-                    key, value = line.split(':', 1)
-                    if key.strip().lower() in {'model name', 'hardware'}:
-                        return value.strip()
+            text = cpuinfo.read_text(encoding='utf-8', errors='ignore')
+            for line in text.splitlines():
+                if 'model name' in line.lower() and ':' in line:
+                    return line.split(':', 1)[1].strip()
 
     if system_name == 'darwin':
         try:
@@ -232,6 +240,33 @@ def get_cpu_brand_string() -> str:
 def get_cpu_model() -> str:
     return normalize_cpu_brand(get_cpu_brand_string())
 
+def get_system_details():
+    os_type = platform.system()
+    if os_type == "Windows":
+        display_name = f"Windows {platform.release()}"
+
+        try:
+            import winreg
+            with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows NT\CurrentVersion") as key:
+                display_version, _ = winreg.QueryValueEx(key, "DisplayVersion")
+        except:
+            display_version = platform.version().split('.')[-1]
+        return display_name, display_version
+    
+    elif os_type == "Linux":
+        full_name = distro.name()
+        if "Red Hat" in full_name:
+            display_name = "RedHat"
+        elif "CentOS" in full_name:
+            display_name = "CentOS"
+        else:
+            display_name = full_name.split()[0] 
+            
+        display_version = distro.version(pretty=True) 
+        
+        return display_name, display_version
+
+    return os_type, platform.release()
 
 @router.post("/login")
 async def admin_login(
@@ -282,8 +317,7 @@ async def get_system_info(
         .all()
     }
 
-    os_name = platform.system()
-    os_version = platform.version() if os_name == "Windows" else platform.release()
+    os_name, os_version = get_system_details()
 
     return {
         "version": get_version(),

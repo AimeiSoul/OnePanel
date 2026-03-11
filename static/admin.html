@@ -291,6 +291,27 @@
 
                         <div class="admin-card section-card system-stat-card">
                             <div class="card-header">
+                                <span class="card-icon system-icon cpu-icon">CPU</span>
+                                <h3>CPU</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="system-stat-top">
+                                    <div>
+                                        <div id="system-cpu-usage" class="system-stat-value">-</div>
+                                        <div id="system-cpu-note" class="system-delta neutral">CPU 使用率</div>
+                                    </div>
+                                    <div class="system-mini-meta">
+                                        <span>型号 <strong id="system-cpu-model">-</strong></span>
+                                        <span>架构 <strong id="system-cpu-arch">-</strong></span>
+                                        <span>核心数 <strong id="system-cpu-cores">-</strong></span>
+                                    </div>
+                                </div>
+                                <div class="system-bar-track"><div id="system-cpu-bar" class="system-bar-fill cpu"></div></div>
+                            </div>
+                        </div>
+
+                        <div class="admin-card section-card system-stat-card">
+                            <div class="card-header">
                                 <span class="card-icon system-icon memory-icon">MEM</span>
                                 <h3>内存</h3>
                             </div>
@@ -301,9 +322,9 @@
                                         <div id="system-memory-note" class="system-delta neutral">内存使用率</div>
                                     </div>
                                     <div class="system-mini-meta">
-                                        <span>总计 <strong id="system-memory-total">-</strong></span>
                                         <span>已用 <strong id="system-memory-used">-</strong></span>
                                         <span>可用 <strong id="system-memory-available">-</strong></span>
+                                        <span>总计 <strong id="system-memory-total">-</strong></span>
                                     </div>
                                 </div>
                                 <div class="system-bar-track"><div id="system-memory-bar" class="system-bar-fill memory"></div></div>
@@ -322,33 +343,12 @@
                                         <div id="system-disk-note" class="system-delta neutral">磁盘使用率</div>
                                     </div>
                                     <div class="system-mini-meta">
-                                        <span>总计 <strong id="system-disk-total">-</strong></span>
                                         <span>已用 <strong id="system-disk-used">-</strong></span>
                                         <span>剩余 <strong id="system-disk-free">-</strong></span>
+                                        <span>总计 <strong id="system-disk-total">-</strong></span>
                                     </div>
                                 </div>
                                 <div class="system-bar-track"><div id="system-disk-bar" class="system-bar-fill disk"></div></div>
-                            </div>
-                        </div>
-
-                        <div class="admin-card section-card system-stat-card">
-                            <div class="card-header">
-                                <span class="card-icon system-icon cpu-icon">CPU</span>
-                                <h3>CPU</h3>
-                            </div>
-                            <div class="card-body">
-                                <div class="system-stat-top">
-                                    <div>
-                                        <div id="system-cpu-usage" class="system-stat-value">-</div>
-                                        <div id="system-cpu-note" class="system-delta neutral">CPU 使用率</div>
-                                    </div>
-                                    <div class="system-mini-meta">
-                                        <span>架构 <strong id="system-cpu-arch">-</strong></span>
-                                        <span>型号 <strong id="system-cpu-model">-</strong></span>
-                                        <span>核心数 <strong id="system-cpu-cores">-</strong></span>
-                                    </div>
-                                </div>
-                                <div class="system-bar-track"><div id="system-cpu-bar" class="system-bar-fill cpu"></div></div>
                             </div>
                         </div>
                     </div>
