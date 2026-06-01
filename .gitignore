@@ -11,3 +11,5 @@ static/user_uploads/*
 # 但不要忽略.gitkeep
 !static/icons/.gitkeep
 !static/user_uploads/.gitkeep
+
+.env

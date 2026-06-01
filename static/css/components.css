@@ -418,6 +418,7 @@
 .upload-btns {
     display: flex;
     gap: 8px;
+    flex-wrap: wrap;
 }
 
 .btn-mini, .btn-mini-outline {

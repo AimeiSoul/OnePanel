@@ -8,10 +8,9 @@ if not hasattr(bcrypt, "__about__"):
     bcrypt.__about__ = About()
 from passlib.context import CryptContext
 import hashlib
+from app.core.config import ACCESS_TOKEN_EXPIRE_DAYS, ALGORITHM, SECRET_KEY
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-SECRET_KEY = "X6Fe1Aw873PGph"
-ALGORITHM = "HS256"
 
 def get_password_hash(password: str):
     pw_hash = hashlib.sha256(password.encode("utf-8")).hexdigest()
@@ -23,6 +22,6 @@ def verify_password(plain_password: str, hashed_password: str):
 
 def create_access_token(data: dict):
     to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + timedelta(days=7)
+    expire = datetime.now(timezone.utc) + timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS)
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)

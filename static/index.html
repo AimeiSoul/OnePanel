@@ -6,7 +6,7 @@
     <title>OnePanel | 洛水天依</title>
     <script src="/static/js/config.js"></script>
     <script src="/static/js/api.js"></script>
-    <script src="/static/js/ui.js"></script>
+    <script src="/static/js/ui.js?v=icon-draft"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="/static/js/main.js"></script>
     <link rel="stylesheet" href="/static/css/base.css">
@@ -96,6 +96,7 @@
                         <div class="upload-btns">
                             <button type="button" class="btn-mini-outline"
                                 onclick="document.getElementById('icon-file-hidden').click()">本地上传</button>
+                            <button type="button" class="btn-mini-outline" onclick="useDefaultIcon()">使用默认</button>
                             <button type="button" class="btn-mini-outline text-danger" onclick="resetIcon()">重置</button>
                         </div>
                         <input type="file" id="icon-file-hidden" hidden accept="image/*"

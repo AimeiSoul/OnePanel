@@ -643,6 +643,15 @@ function updateModalIconPreview(path) {
     pathInput.value = path || '';
 }
 
+async function useDefaultIcon() {
+    const defaultIconPath = '/static/default_link.jpg';
+    updateModalIconPreview(defaultIconPath);
+    document.getElementById('modal-icon-input').value = '';
+    UI.showToast('已选择默认图标，保存后生效');
+}
+
+window.useDefaultIcon = useDefaultIcon;
+
 async function uploadIconFile(input) {
     const file = input.files[0];
     if (!file) return;
@@ -679,10 +688,6 @@ async function downloadIconFromUrl() {
 
     const formData = new FormData();
     formData.append('url', url);
-    if (window.currentEditingLinkId) {
-        formData.append('link_id', window.currentEditingLinkId);
-    }
-
     try {
         const res = await fetch('/api/links/download-icon', {
             method: 'POST',
@@ -692,7 +697,7 @@ async function downloadIconFromUrl() {
         const data = await res.json();
         if (res.ok) {
             updateModalIconPreview(data.icon_url);
-            UI.showToast('抓取成功并已保存');
+            UI.showToast('抓取成功，保存后生效');
         } else {
             UI.showToast(data.detail || '抓取失败', false);
         }

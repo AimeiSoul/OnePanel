@@ -271,5 +271,3 @@ async def reorder_links(
 async def health_check_trigger():
 
     return {"msg": "健康检查已触发"}
-
-

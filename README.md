@@ -151,7 +151,22 @@ pip install -r requirements.txt
 
 ---
 
-### 4️⃣ 启动服务
+### 4️⃣ 创建 .env 配置
+
+```bash
+cp .env.example .env
+```
+
+编辑 `.env`，将 `SECRET_KEY` 修改为随机字符串：
+
+```env
+SECRET_KEY=your-random-secret-key
+```
+
+
+---
+
+### 5️⃣ 启动服务
 
 ```bash
 uvicorn app.main:app --reload
@@ -215,6 +230,13 @@ http://127.0.0.1:8000
 ## 📦 部署建议
 
 ### 生产环境推荐：
+
+启动前请先确认项目根目录存在 `.env`，并已配置 `SECRET_KEY`：
+
+```bash
+cp .env.example .env
+vim .env
+```
 
 ```bash
 uvicorn app.main:app --host 0.0.0.0 --port 8000
