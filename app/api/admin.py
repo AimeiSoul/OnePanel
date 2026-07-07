@@ -1,3 +1,5 @@
+from PIL import Image, UnidentifiedImageError
+import io
 import ctypes
 import os
 import platform
@@ -28,6 +30,13 @@ router = APIRouter(prefix="/api/admin", tags=["Admin"])
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
+MAX_FILE_SIZE = 10 * 1024 * 1024
+
+ALLOWED_FORMATS = {
+    "JPEG",
+    "PNG",
+    "WEBP",
+}
 
 def format_bytes(num_bytes: int) -> str:
     units = ["B", "KB", "MB", "GB", "TB"]
@@ -404,16 +413,60 @@ async def update_static_assets(
     if asset_type not in file_map:
         raise HTTPException(400, "不支持的资源类型")
 
-    target_path = os.path.join("static", file_map[asset_type])
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(400, "只支持图片上传")
 
-    with open(target_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+    content = await file.read()
+
+    if len(content) > MAX_FILE_SIZE:
+        raise HTTPException(400, "图片不能超过10MB")
+
+    try:
+        image = Image.open(io.BytesIO(content))
+        image.verify()
+
+    except (UnidentifiedImageError, OSError):
+        raise HTTPException(400, "上传的文件不是有效图片")
+
+    image = Image.open(io.BytesIO(content))
+
+    if image.format not in ALLOWED_FORMATS:
+        raise HTTPException(
+            400,
+            "仅支持 JPG、PNG、WEBP 图片"
+        )
+
+    if image.width > MAX_WIDTH or image.height > MAX_HEIGHT:
+        raise HTTPException(
+            400,
+            "图片尺寸过大"
+        )
+
+    target_path = os.path.join(
+        "static",
+        file_map[asset_type]
+    )
+
+    try:
+        if image.format == "PNG":
+            if image.mode not in ("RGB", "RGBA"):
+                image = image.convert("RGBA")
+        else:
+            if image.mode != "RGB":
+                image = image.convert("RGB")
+
+        image.save(target_path)
+
+    except Exception as e:
+        raise HTTPException(
+            500,
+            f"图片保存失败: {str(e)}"
+        )
 
     return {
         "msg": f"{asset_type} 已成功替换",
         "url": f"/static/{file_map[asset_type]}?v={os.urandom(4).hex()}",
     }
-
 
 @router.get("/users", response_model=schemas.user.UserPaginationOut)
 async def list_users(

@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
+from PIL import Image, UnidentifiedImageError
+import io
 import shutil
 import requests
 import uuid
@@ -13,6 +15,17 @@ from app.core.config import ICONS_DIR
 from app.core.crawler import get_remote_http_title
 
 router = APIRouter(prefix="/api/links", tags=["链接管理"])
+
+ALLOWED_FORMATS = {
+    "JPEG": ".jpg",
+    "PNG": ".png",
+    "GIF": ".gif",
+    "WEBP": ".webp",
+}
+
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
+MAX_WIDTH = 4096
+MAX_HEIGHT = 4096
 
 class ReorderSchema(BaseModel):
     link_ids: List[int]
@@ -127,13 +140,33 @@ def cleanup_old_icon_file(icon_path: str):
 
 @router.post("/upload-icon")
 async def upload_link_icon(
-    file: UploadFile = File(...), 
-    link_id: int = Form(None), 
+    file: UploadFile = File(...),
+    link_id: int = Form(None),
     db: Session = Depends(get_db),
     user: models.User = Depends(get_current_user)
 ):
+
     if not file.content_type.startswith("image/"):
         raise HTTPException(400, "只支持图片上传")
+
+    content = await file.read()
+
+    if len(content) > MAX_FILE_SIZE:
+        raise HTTPException(400, "图片不能超过5MB")
+
+    try:
+        image = Image.open(io.BytesIO(content))
+        image.verify()
+    except (UnidentifiedImageError, OSError):
+        raise HTTPException(400, "上传的文件不是有效图片")
+
+    image = Image.open(io.BytesIO(content))
+
+    if image.width > MAX_WIDTH or image.height > MAX_HEIGHT:
+        raise HTTPException(400, "图片尺寸过大")
+
+    if image.format not in ALLOWED_FORMATS:
+        raise HTTPException(400, "仅支持 JPG、PNG、GIF、WEBP 图片")
 
     link_obj = None
     if link_id:
@@ -141,19 +174,21 @@ async def upload_link_icon(
         if link_obj and link_obj.icon:
             cleanup_old_icon_file(link_obj.icon)
 
-    ext = os.path.splitext(file.filename)[1]
+    ext = ALLOWED_FORMATS[image.format]
     filename = f"{uuid.uuid4()}{ext}"
     save_path = os.path.join(ICONS_DIR, filename)
     icon_url = f"/static/icons/{filename}"
-    
-    with open(save_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+
+    if image.mode not in ("RGB", "RGBA"):
+        image = image.convert("RGBA" if image.format == "PNG" else "RGB")
+
+    image.save(save_path)
 
     if link_obj:
         link_obj.icon = icon_url
         db.commit()
-        
-    return {"icon_url": f"/static/icons/{filename}"}
+
+    return {"icon_url": icon_url}
 
 @router.post("/download-icon")
 async def download_link_icon(

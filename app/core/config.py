@@ -35,7 +35,7 @@ if not SECRET_KEY:
     raise RuntimeError("SECRET_KEY must be set in the .env file or environment")
 
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_DAYS = 7
+ACCESS_TOKEN_EXPIRE_DAYS = 1
 
 for path in [DATA_DIR, UPLOAD_DIR, ICONS_DIR]:
     os.makedirs(path, exist_ok=True)

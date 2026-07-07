@@ -5,10 +5,21 @@ from app.api.deps import get_db, get_current_user
 from app.schemas.user import UserRegister, UserOut, UserUpdate
 from app.core import security, config
 from app import models
+from PIL import Image, UnidentifiedImageError
+import io
 import shutil
 import os
 import uuid
 
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
+MAX_WIDTH = 7680
+MAX_HEIGHT = 4320
+
+ALLOWED_FORMATS = {
+    "JPEG": ".jpg",
+    "PNG": ".png",
+    "WEBP": ".webp",
+}
 
 router = APIRouter(tags=["认证"])
 
@@ -102,7 +113,29 @@ async def upload_background(
     db: Session = Depends(get_db),
 ):
 
-    ext = os.path.splitext(file.filename)[1]
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(400, "只支持图片上传")
+
+    content = await file.read()
+
+    if len(content) > MAX_FILE_SIZE:
+        raise HTTPException(400, "图片不能超过10MB")
+
+    try:
+        image = Image.open(io.BytesIO(content))
+        image.verify()
+    except (UnidentifiedImageError, OSError):
+        raise HTTPException(400, "上传的文件不是有效图片")
+
+    image = Image.open(io.BytesIO(content))
+
+    if image.width > MAX_WIDTH or image.height > MAX_HEIGHT:
+        raise HTTPException(400, "图片尺寸过大")
+
+    if image.format not in ALLOWED_FORMATS:
+        raise HTTPException(400, "仅支持 JPG、PNG、WEBP")
+
+    ext = ALLOWED_FORMATS[image.format]
 
     filename = f"{uuid.uuid4()}{ext}"
 
@@ -116,21 +149,16 @@ async def upload_background(
 
         old_bg_path = os.path.join(static_root, old_bg_relative)
 
-
         if os.path.exists(old_bg_path) and "default_bg" not in old_bg_path:
-
             try:
-
                 os.remove(old_bg_path)
-
             except Exception as e:
+                print(f"删除旧背景失败: {e}")
 
-                print(f"删除旧背景失败: {e}") 
+    if image.mode not in ("RGB", "RGBA"):
+        image = image.convert("RGB")
 
-
-    with open(file_path, "wb") as buffer:
-
-        shutil.copyfileobj(file.file, buffer)
+    image.save(file_path)
 
     relative_path = f"/static/user_uploads/{filename}"
 
@@ -138,4 +166,7 @@ async def upload_background(
 
     db.commit()
 
-    return {"msg": "背景更新成功", "url": relative_path}
+    return {
+        "msg": "背景更新成功",
+        "url": relative_path
+    }

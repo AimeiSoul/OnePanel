@@ -33,7 +33,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
     
     user = db.query(models.User).filter(models.User.username == username).first()
     if user is None:
-        raise HTTPException(status_code=404, detail="用户不存在")
+        raise credentials_exception
     if not user.is_active:
         raise HTTPException(status_code=403, detail="账户已被禁用")
     return user
